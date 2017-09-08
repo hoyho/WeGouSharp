@@ -19,10 +19,8 @@ namespace WeGouSharp
             //创建logger
             var logger = LogManager.GetLogger(typeof(Program));
             logger.Debug("log1");
-            logger.Debug("log2");
-            logger.Error("error3");
             WechatSogouApi Sogou = new WechatSogouApi();
-            var result = Sogou.GetAllRecentArticle(1); // get_gzh_message
+            var result = Sogou.GetOfficialAccountMessages("","bitsea",""); // get_gzh_message
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
             Console.Write(json);
             Console.ReadKey();

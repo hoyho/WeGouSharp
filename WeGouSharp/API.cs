@@ -35,32 +35,43 @@ namespace WeGouSharp
             HtmlDocument pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             HtmlNodeCollection targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list2']/li");
-            foreach (HtmlNode node in targetArea)
+            if (targetArea != null)
             {
-                OfficialAccount accountInfo = new OfficialAccount();
-
-                //链接中包含了&amp; html编码符，要用htmdecode，不是urldecode
-                accountInfo.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a").GetAttributeValue("href",""));
-                //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
-                accountInfo.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src",""));
-                accountInfo.Name   = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim().Replace("<!--red_beg-->","").Replace("<!--red_end-->","") ;
-                accountInfo.WeChatId  = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
-                accountInfo.QrCode = WebUtility.UrlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
-                accountInfo.Introduction  = node.SelectSingleNode("dl[1]/dd").InnerText.Trim();
-                //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
-                //现在改为包含该script的即认证了
-                if (node.InnerText.Contains("document.write(authname('2'))"))
+                foreach (HtmlNode node in targetArea)
                 {
-                    accountInfo.IsAuth = true;
-                }
-                else
-                {
-                    accountInfo.IsAuth = false;
-                }
-                accountList.Add(accountInfo);
+                    try
+                    {
+                        OfficialAccount accountInfo = new OfficialAccount();
+
+                        //链接中包含了&amp; html编码符，要用htmdecode，不是urldecode
+                        accountInfo.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a").GetAttributeValue("href", ""));
+                        //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
+                        accountInfo.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
+                        accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
+                        accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
+                        accountInfo.QrCode = WebUtility.UrlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
+                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim();
+                        //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
+                        //现在改为包含该script的即认证了
+                        if (node.InnerText.Contains("document.write(authname('2'))"))
+                        {
+                            accountInfo.IsAuth = true;
+                        }
+                        else
+                        {
+                            accountInfo.IsAuth = false;
+                        }
+                        accountList.Add(accountInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Warn(e);
+                    }
 
 
+                }
             }
+            
 
           
             return accountList; 

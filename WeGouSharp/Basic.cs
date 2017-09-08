@@ -83,7 +83,7 @@ namespace WeGouSharp
             try
             {
                
-                text = netHelper.Get(headers,requestUrl);
+                text = netHelper.Get(headers,requestUrl,"utf-8");
             }
             catch (WechatSogouVcodeException e)
             {

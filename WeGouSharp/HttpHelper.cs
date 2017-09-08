@@ -33,7 +33,7 @@ namespace WeGouSharp
         /// <param name="headers"></param>
         /// <param name="url"></param>
         /// <returns>respondse</returns>
-        public string Get(WebHeaderCollection headers, string url ,string responseEncoding="Default")
+        public string Get(WebHeaderCollection headers, string url ,string responseEncoding="UTF-8")
         {
             string responseText = "";
             try
