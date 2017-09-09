@@ -16,6 +16,7 @@ namespace WeGouSharp
         ILog logger = LogManager.GetLogger(typeof(Program));
     }
 
+
     class WechatSogouApi : WechatSogouBasic
     {
         
@@ -586,54 +587,7 @@ namespace WeGouSharp
         }
 
 
-
-        string deal_article(string url,string  title)
-        {
-            //        """获取文章详情
-
-            //        Args:
-            //            url: 文章链接
-            //            title: 文章标题
-            //            注意，title可以为空，则表示不根据title获取相似文章
-
-            //        Returns:
-            //            {'yuan':'','related':'','comment':'','content': {'content_html':'','content_rich':'','content_text':''}
-            //    yuan: 文章固定地址
-            //    related: 相似文章信息字典
-            //    comment: 评论信息字典
-            //    content: 文章内容
-            string text = this._GetOfficialAccountArticleHtml(url);
-            string comment = this.RequireArticleComment(text, url);
-            string content_html = this.ExtractArticleMain(text, url);
-
-
-
-            string retu = new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new
-            {
-                comment = comment,
-                content_html = content_html
-            });
-
-            if(title != null)
-            {
-                string related = this.GetRelatedArticleJson(url, title);
-                retu = new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new
-                {
-                    comment = comment,
-                    content_html = content_html,
-                    related = related
-                });
-                return retu;
-            }
-            else
-            {
-                return retu;
-            }
-
-        }
-
-
-
+        
 
         /// <summary>
         /// GetArticleByCategoryIndex
@@ -768,7 +722,7 @@ namespace WeGouSharp
 
 
 
-        public void deal_mass_send_msg_page(string wechatid,bool updatecache =true)
+        private  void deal_mass_send_msg_page(string wechatid,bool updatecache =true)
         {
             string url = "http://mp.weixin.qq.com/mp/getmasssendmsg?";
             // uin, key, biz, pass_ticket, frommsgid 

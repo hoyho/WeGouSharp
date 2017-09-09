@@ -23,6 +23,7 @@ namespace WeGouSharp
             var WechatCache = new WechatCache(Config.CacheDir, 3);
             var f1= WechatCache.Add("cache1kEY键", "wechatCacheValue", 300);
             string wechatCacheValue = WechatCache.Get<object>("cache1kEY键").ToString();
+            var x = WechatCache.Get<object>("notmotmpot");
             string wechatCacheValue2 = Convert.ToString(WechatCache.Get<object>("cache1kEY"));
 
             var has1 = WechatCache.Has("cache1kEY");
@@ -35,6 +36,9 @@ namespace WeGouSharp
             var wec = WechatCache.ClearAll();
 
             WechatSogouApi Sogou = new WechatSogouApi();
+            HttpHelper net = new HttpHelper();
+            var ser = WechatCache.Add("mainobj", net, 1);
+            var deser = WechatCache.Get<WechatSogouApi>("mainobj");
             var result = Sogou.GetOfficialAccountMessages("","bitsea",""); // get_gzh_message
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
             Console.Write(json);

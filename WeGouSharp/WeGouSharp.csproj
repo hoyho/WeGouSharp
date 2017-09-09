@@ -66,7 +66,6 @@
   <ItemGroup>
     <Compile Include="API.cs" />
     <Compile Include="Basic.cs" />
-    <Compile Include="CacheHelper.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Exception.cs" />
     <Compile Include="FileCache.cs" />

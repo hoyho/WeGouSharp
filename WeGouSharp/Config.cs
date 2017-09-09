@@ -13,11 +13,6 @@ namespace WeGouSharp
 
         public static string CacheSessionName = "requests_wechatsogou_session";
 
-        //public  string CacheDir
-        //{
-        //    get { return _cacheDir; }
-        //    set { _cacheDir= value ; }
-        //}
 
 
     }

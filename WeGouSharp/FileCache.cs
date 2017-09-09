@@ -47,6 +47,7 @@ namespace WeGouSharp
         }
 
 
+
         /// <summary>
         /// 添加一个文件缓存,如果键值key对应的缓存不存在，那么增加值value缓存，，否则返回false；
         /// </summary>
@@ -70,17 +71,6 @@ namespace WeGouSharp
         public bool Update(string key, object value, int timeOut)
         {
             return _FileCache._Update(key, value, timeOut);
-
-            //string fileName = _FileCache._GetFileName(key);
-            //if (File.Exists(fileName))
-            //{
-            //    _FileCache.
-            //}
-            //else
-            //{
-            //    _FileCache._Add(key,value ,timeOut )
-            //}
-            //return this._FileCache._Set(key, value, timeOut);
         }
 
 
@@ -110,51 +100,19 @@ namespace WeGouSharp
         }
     }
 
-    /*
-    class BaseCache
-    {
-        int _defaultTimeout;
-        public BaseCache(int DefaultTimeOut)
-        {
-            _defaultTimeout = DefaultTimeOut;
-        }
-
-
-        //public int NormalizeTimeout(int timeout)
-        //{
-        //    if (timeout)
-        //    {
-        //        timeout = _defaultTimeout;
-        //    }
-        //    return timeout;
-        //}
-
-        public string get(string key)
-        {
-            //Look up key in the cache and return the value for it.
-
-            //:param key: the key to be looked up.
-            //returns: The value if it exists and is readable, else ``None``.
-            //"""
-            return null;
-        }
-
-
-        public bool delete(string key)
-        {
-            //    """Delete `key` from the cache.
-            //:param key: the key to delete.
-            //:returns: Whether the key existed and has been deleted.
-            //:rtype: boolean
-
-            return true;
-
-        }
 
 
 
-    }
-    */
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -434,7 +392,8 @@ namespace WeGouSharp
             else
             {
 
-                return new T(); ;
+                //return new T();
+                return default(T); //返回null;
                 //throw new FileNotFoundException(string.Format("file {0} does not exist", cacheFileName));
             }
                 

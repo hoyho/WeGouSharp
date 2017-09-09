@@ -15,45 +15,6 @@ namespace WeGouSharp
     class Tools
     {
 
-       public static  string replace_space(string s)
-        {
-            return s.Replace(" ","").Replace("\r\n", "");
-        }
-
-        public static string replace_html(string data)
-        {
-            //to do 
-            Dictionary<string, string> result = new Dictionary<string, string> { };
-            string json = (new JavaScriptSerializer()).Serialize(result);
-            return json;
-
-    //        if isinstance(data, dict):
-    //    return dict([(replace_html(k), replace_html(v)) for k, v in data.items()])
-    //            elif isinstance(data, list):
-    //    return [replace_html(l) for l in data]
-    //    elif isinstance(data, str):
-    //    return _replace_str_html(data)
-    //else:
-    //    return data
-        }
-
-        public static string get_elem_text(string element)
-        {
-
-            return "";
-    //        """抽取lxml.etree库中elem对象中文字
-
-    //Args:
-    //    elem: lxml.etree库中elem对象
-
-    //Returns:
-    //    elem中文字
-    //"""
-    //return ''.join([node.strip() for node in elem.itertext()])
-
-        }
-   
-
         /// <summary>
         /// 调用OpenCV显示验证码
         /// </summary>
@@ -63,7 +24,7 @@ namespace WeGouSharp
         {
 
             var bytes = Convert.FromBase64String(base64String);
-            using(MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length))
+            using (MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length))
             {
                 // Convert byte[] to Image
                 ms.Write(bytes, 0, bytes.Length);
@@ -97,7 +58,50 @@ namespace WeGouSharp
         }
 
 
+        //委托显示图片
         public delegate void ShowImageHandle(string base64String);
+
+
+
+
+        public static  string replaceSpace(string s)
+        {
+            return s.Replace(" ","").Replace("\r\n", "");
+        }
+
+        public static string replaceHtml(string data)
+        {
+            //to do 
+            Dictionary<string, string> result = new Dictionary<string, string> { };
+            string json = (new JavaScriptSerializer()).Serialize(result);
+            return json;
+
+    //        if isinstance(data, dict):
+    //    return dict([(replace_html(k), replace_html(v)) for k, v in data.items()])
+    //            elif isinstance(data, list):
+    //    return [replace_html(l) for l in data]
+    //    elif isinstance(data, str):
+    //    return _replace_str_html(data)
+    //else:
+    //    return data
+        }
+
+        public static string get_elem_text(string element)
+        {
+
+            return "";
+    //        """抽取lxml.etree库中elem对象中文字
+
+    //Args:
+    //    elem: lxml.etree库中elem对象
+
+    //Returns:
+    //    elem中文字
+    //"""
+    //return ''.join([node.strip() for node in elem.itertext()])
+
+        }
+   
 
 
 
