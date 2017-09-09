@@ -1,0 +1,4 @@
+HtmlAgilityPack
+Log4net
+Newtonsoft.Json
+Emgu.cv
