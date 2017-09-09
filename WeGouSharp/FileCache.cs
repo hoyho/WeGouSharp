@@ -12,49 +12,105 @@ namespace WeGouSharp
     {
     }
 
+
+
     class WechatCache
     {
-        FileSystemCache _cache;
+        FileSystemCache _FileCache;
+
         public WechatCache(string CacheDir, int DefaultTimeOut)
         {
             //cache_dir是缓存目录
-            this._cache = new FileSystemCache(CacheDir, 500, DefaultTimeOut);
-        }
-        public bool clear()
-        {
-            return this._cache.Clear();
+            this._FileCache = new FileSystemCache(CacheDir, 500, DefaultTimeOut);
         }
 
-        public string get(string key)
+        /// <summary>
+        /// 移除所有缓存
+        /// </summary>
+        /// <returns></returns>
+        public bool ClearAll()
+        {
+            return this._FileCache._Clear();
+        }
+
+
+        /// <summary>
+        /// 根据键获取缓存内容
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+       public T Get<T>(string key) where T : new()
         {
             //获取键值key的缓存值
-          //如果没有对应缓存，返回None
-            return this._cache.get(key);
+            //如果没有对应缓存，返回None
+            return this._FileCache._Get<T>(key);
         }
 
-        public bool add(string key,string value,int timeOut)
+
+        /// <summary>
+        /// 添加一个文件缓存,如果键值key对应的缓存不存在，那么增加值value缓存，，否则返回false；
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="timeOut">暂时未实现</param>
+        /// <returns></returns>
+        public bool Add(string key, object value, int timeOut)
         {
-            //增加缓存
-            //如果键值key对应的缓存不存在，那么增加值value到键值key，过期时间timeout，默认300秒
-            //否则返回False（即不能覆盖设置缓存）
-            return this._cache.add(key, value, timeOut);
+            return this._FileCache._Add(key, value, timeOut);
         }
 
-        public bool set(string key,string value,int timeOut)
+
+        /// <summary>
+        /// 更新cache内容
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="timeOut">暂时未实现</param>
+        /// <returns></returns>
+        public bool Update(string key, object value, int timeOut)
         {
-            //设置缓存
-            //设置键值key的缓存为value,过期时间300秒
-            return this._cache.set(key, value, timeOut);
+            return _FileCache._Update(key, value, timeOut);
+
+            //string fileName = _FileCache._GetFileName(key);
+            //if (File.Exists(fileName))
+            //{
+            //    _FileCache.
+            //}
+            //else
+            //{
+            //    _FileCache._Add(key,value ,timeOut )
+            //}
+            //return this._FileCache._Set(key, value, timeOut);
         }
-        public bool delete(string key)
+
+
+        /// <summary>
+        /// 添加一个文件缓存,如果键值key对应的缓存不存在，那么增加值value缓存，，否则返回false；
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="timeOut">暂时未实现</param>
+        /// <returns></returns>
+        public bool Has(string key)
+        {
+            return this._FileCache._Has(key);
+        }
+
+
+        /// <summary>
+        /// 删除一个缓存
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public bool Delete(string key)
         {
             //删除缓存
-        //删除键值key存储的缓存
-            return this._cache.delete(key);
+            //删除键值key存储的缓存
+            return this._FileCache._Delete(key);
         }
-}
+    }
 
-
+    /*
     class BaseCache
     {
         int _defaultTimeout;
@@ -73,7 +129,7 @@ namespace WeGouSharp
         //    return timeout;
         //}
 
-        public string get(string  key)
+        public string get(string key)
         {
             //Look up key in the cache and return the value for it.
 
@@ -94,32 +150,37 @@ namespace WeGouSharp
             return true;
 
         }
-  
-        
+
+
 
     }
+    */
+
 
 
     class FileSystemCache
     {
         string _path;
         int _threshold;
+        log4net.ILog logger = log4net.LogManager.GetLogger(typeof(Program));
 
         //used for temporary files by the FileSystemCache
-        string _fs_transaction_suffix = ".__wz_cache";
+        static string _fs_transaction_suffix = ".__wz_cache";
 
-        public FileSystemCache(string cacheDirectory,int threshold=500,int defaultTimeout=300)
+        public FileSystemCache(string cacheDirectory, int threshold = 500, int defaultTimeout = 300)
         {
             //BaseCache.__init__(self, default_timeout)
             this._path = cacheDirectory;
             this._threshold = threshold;
             try
             {
-                if(!Directory.Exists(cacheDirectory))
+                if (!Directory.Exists(cacheDirectory))
                 {
                     Directory.CreateDirectory(cacheDirectory);
                 }
-            }catch(Exception e)
+
+            }
+            catch (Exception e)
             {
                 throw e;
             }
@@ -134,7 +195,7 @@ namespace WeGouSharp
             if (timeout != 0)
             {
                 timeout = (int)timeStamp + timeout;
-                 
+
             }
             return timeout;
         }
@@ -144,17 +205,15 @@ namespace WeGouSharp
         /// 列举cache文件路径
         /// </summary>
         /// <returns></returns>
-        public List<string >  ListCache()
+        public List<string> ListCache()
 
         {        //return a list of (fully qualified) cache filenames
 
-            //return [os.path.join(self._path, fn) for fn in os.listdir(self._path)
-            //    if not fn.endswith(self._fs_transaction_suffix)]
 
             List<string> cacheList = new List<string> { };
-            foreach(var fileName in Directory.EnumerateFiles(this._path))
+            foreach (var fileName in Directory.EnumerateFiles(this._path))
             {
-                if (!fileName.EndsWith(this._fs_transaction_suffix))
+                if (!fileName.EndsWith(_fs_transaction_suffix))
                 {
                     cacheList.Add(fileName);
                 }
@@ -164,54 +223,65 @@ namespace WeGouSharp
 
         public void _prune()
         {
-        //    entries = self._list_dir()
-        //if len(entries) > self._threshold:
-        //    now = time()
-        //    for idx, fname in enumerate(entries):
-        //        try:
-        //            remove = False
-        //            with open(fname, 'rb') as f:
-        //                expires = pickle.load(f)
-        //            remove = (expires != 0 and expires <= now) or idx % 3 == 0
+            //    entries = self._list_dir()
+            //if len(entries) > self._threshold:
+            //    now = time()
+            //    for idx, fname in enumerate(entries):
+            //        try:
+            //            remove = False
+            //            with open(fname, 'rb') as f:
+            //                expires = pickle.load(f)
+            //            remove = (expires != 0 and expires <= now) or idx % 3 == 0
 
-        //            if remove:
-        //                os.remove(fname)
-        //        except(IOError, OSError):
-        //            pass
+            //            if remove:
+            //                os.remove(fname)
+            //        except(IOError, OSError):
+            //            pass
         }
 
 
-        public bool Clear()
+        /// <summary>
+        /// 移除所有缓存
+        /// </summary>
+        /// <returns></returns>
+        public bool _Clear()
         {
-            foreach(string fname in this.ListCache())
+            foreach (string fname in this.ListCache())
             {
                 try
                 {
                     File.Delete(fname);
-                } catch(Exception e)
+                }
+                catch (Exception e)
                 {
+                    logger.Error(e);
                     return false;
                 }
-               
+
             }
 
             return true;
         }
 
-        private string  _get_filename(string key)
+
+
+        /// <summary>
+        /// 根据key的utf编码并进行md运算后返回目录+文件名
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public string _GetFileName(string key)
         {
-            byte[] bytes = Encoding.Default.GetBytes(key);
+            byte[] bytes = Encoding.Default.GetBytes(key.Trim());
             key = Encoding.UTF8.GetString(bytes);
-   
+
 
 
             MD5 md5 = System.Security.Cryptography.MD5.Create();
 
-            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(key);
+            byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(key);
 
             byte[] hash = md5.ComputeHash(inputBytes);
-
-            // step 2, convert byte array to hex string
 
             StringBuilder sb = new StringBuilder();
 
@@ -223,105 +293,155 @@ namespace WeGouSharp
 
             }
 
-            return sb.ToString();
-            //    key = key.encode('utf-8')  # XXX unicode review
-            //hash = md5(key).hexdigest()
-
-            //return os.path.join(self._path, hash)
+            var fullFileName = Path.Combine(this._path, sb.ToString());
+            return fullFileName;
         }
 
-        public string  get(string key)
-        {
-            string filename = this._get_filename(key);
-            return "";
-        //    filename = self._get_filename(key)
-        //try:
-        //    with open(filename, 'rb') as f:
-        //        pickle_time = pickle.load(f)
-        //        if pickle_time == 0 or pickle_time >= time():
-        //            return pickle.load(f)
-        //        else:
-        //            os.remove(filename)
-        //            return None
-        //except(IOError, OSError, pickle.PickleError):
-        //    return None
+        
 
+
+        public T _Get<T>(string key) where T : new()
+        {
+            string fileName = this._GetFileName(key);
+            return (T)_DeSerializeFromBin<T>(fileName);
         }
 
-        public bool add(string key, string value, int timeout  )
+
+        public bool _Add(string key, object value, int timeout)
         {
-            string filename = this._get_filename(key);
-           if(!Directory.Exists(filename))
+            string fileName = this._GetFileName(key);
+            if (!File.Exists(fileName))
             {
-                return this.set(key, value, timeout);
-            }else
+                timeout = this._NormalizeTimeout(timeout);
+                 fileName = this._GetFileName(key);
+                _SerializeToBin(value, fileName);
+                return true;
+            }
+            else //已存在,应使用update/set更新
             {
                 return false;
+                //File.Delete(filename);
+                //return this.set(key, value, timeout);;
             }
 
 
         }
 
 
-    public bool set(string key,string  value,int timeout)
-        {
-            timeout = this._NormalizeTimeout(timeout);
-            string filename = this._get_filename(key);
-            this._prune();
 
-            //    try:
-            //    fd, tmp = tempfile.mkstemp(suffix = self._fs_transaction_suffix,
-            //                               dir = self._path)
-            //    with os.fdopen(fd, 'wb') as f:
-            //        pickle.dump(timeout, f, 1)
-            //        pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
-            //    rename(tmp, filename)
-            //    os.chmod(filename, self._mode)
-            //except(IOError, OSError):
-            //    return False
-            //else:
-            //    return True
-            return true;
+        public bool _Update(string key, object value, int timeout)
+        {
+            string fileName = this._GetFileName(key);
+            if (!File.Exists(fileName))
+            {
+                return false ;
+            }
+            else //已存在
+            {
+                timeout = this._NormalizeTimeout(timeout);
+                fileName = this._GetFileName(key);
+                _SerializeToBin(value, fileName);
+                return true;
+            }
+
+
         }
 
 
+        //public bool _Set(string key, object value, int timeout)
+        //{
+        //    timeout = this._NormalizeTimeout(timeout);
+        //    string fileName = this._GetFileName(key);
+        //    _SerializeToBin(value, fileName);
+        //    this._prune();
+        //    return true;
 
-    public  bool delete(string key)
+        //}
+
+
+
+        public bool _Delete(string key)
         {
+            string fileName = this._GetFileName(key);
+
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch(Exception e)
+            {
+                logger.Warn(e);
+            }
 
             return false;
-        //    try:
-        //    os.remove(self._get_filename(key))
-        //except(IOError, OSError):
-        //    return False
-        //else:
-        //    return True
         }
 
 
-        public bool has(string key)
+        public bool _Has(string key)
         {
-            //    filename = self._get_filename(key)
-            //try:
-            //    with open(filename, 'rb') as f:
-            //        pickle_time = pickle.load(f)
-            //        if pickle_time == 0 or pickle_time >= time():
-            //            return True
-            //        else:
-            //            os.remove(filename)
-            //            return False
-            //except(IOError, OSError, pickle.PickleError):
-            //    return False
-            return false ;
+            bool isExist = false;
+            string filename = this._GetFileName(key);
+           if(File.Exists(filename))
+            {
+                FileInfo fi = new FileInfo(filename);
+                if (fi.Length > 0)
+                {
+                    isExist = true;
+                }
+            }
+
+            return isExist;
         }
 
-      
+
+
+        /// <summary>
+        /// 将一个object 系列化存入cacheFileName中
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="cacheFileName"></param>
+        private static void _SerializeToBin(object obj, string cacheFileName)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName));
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            using (FileStream fs = new FileStream(cacheFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                bf.Serialize(fs, obj); 
+            }
+
+            var result = Path.ChangeExtension(cacheFileName, _fs_transaction_suffix);
+        }
+
+
+        /// <summary>
+        /// 将缓存文件系列化为T（此处T为字典类型）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="cacheFileName"></param>
+        /// <returns></returns>
+        private static T _DeSerializeFromBin<T>(string cacheFileName) where T : new()
+        {
+            if (File.Exists(cacheFileName))
+            {
+                T ret = new T();
+                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                using (FileStream fs = new FileStream(cacheFileName, FileMode.Open, FileAccess.Read))
+                {
+                    ret = (T)bf.Deserialize(fs);
+                }
+                return ret;
+            }
+            else
+            {
+
+                return new T(); ;
+                //throw new FileNotFoundException(string.Format("file {0} does not exist", cacheFileName));
+            }
+                
+        }
 
 
 
     }
-
-
-
 
 }

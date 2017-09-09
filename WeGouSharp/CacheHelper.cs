@@ -75,20 +75,34 @@ namespace WeGouSharp
 
     public static class FileBasedCahce
     {
-        static Dictionary<string, string> _FileMap;
+
+        //key --FileMap<key,cacheName>---
+
+        static Dictionary<string, string> _FileMap;  // <key= cache key , value= cache File Name>
         const string MAPFILENAME = "FileBasedCahceMAP.dat";
+        //MAPFILENAME-->_FileMap<string, string>
         public static string DirectoryLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+
+
         static FileBasedCahce()
         {
             if (!Directory.Exists(DirectoryLocation))
-                throw new ArgumentException("directoryLocation msu exist");
+                throw new ArgumentException("directoryLocation not exist");
             if (File.Exists(MyMapFileName))
             {
                 _FileMap = DeSerializeFromBin<Dictionary<string, string>>(MyMapFileName);
             }
             else
+            {
                 _FileMap = new Dictionary<string, string>();
+            }
+               
         }
+
+
+
+
         public static T Get<T>(string key) where T : new()
         {
             if (_FileMap.ContainsKey(key))
@@ -96,6 +110,10 @@ namespace WeGouSharp
             else
                 throw new ArgumentException("Key not found");
         }
+
+
+
+
         public static void Insert<T>(string key, T value)
         {
             if (_FileMap.ContainsKey(key))
@@ -107,8 +125,14 @@ namespace WeGouSharp
                 _FileMap.Add(key, GetNewFileName);
                 SerializeToBin(value, _FileMap[key]);
             }
+
             SerializeToBin(_FileMap, MyMapFileName);
         }
+
+
+
+
+
         private static string GetNewFileName
         {
             get
@@ -116,6 +140,11 @@ namespace WeGouSharp
                 return Path.Combine(DirectoryLocation, Guid.NewGuid().ToString());
             }
         }
+
+
+
+
+
         private static string MyMapFileName
         {
             get
@@ -123,29 +152,42 @@ namespace WeGouSharp
                 return Path.Combine(DirectoryLocation, MAPFILENAME);
             }
         }
-        private static void SerializeToBin(object obj, string filename)
+
+
+
+
+        private static void SerializeToBin(object obj, string cacheFileName)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(filename));
+            Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName));
             System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            using (FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(cacheFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 bf.Serialize(fs, obj);
             }
         }
-        private static T DeSerializeFromBin<T>(string filename) where T : new()
+
+
+
+        /// <summary>
+        /// 将缓存文件系列化为T（此处T为字典类型）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        private static T DeSerializeFromBin<T>(string cacheFileName) where T : new()
         {
-            if (File.Exists(filename))
+            if (File.Exists(cacheFileName))
             {
                 T ret = new T();
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                using (FileStream fs = new FileStream(cacheFileName, FileMode.Open, FileAccess.Read))
                 {
                     ret = (T)bf.Deserialize(fs);
                 }
                 return ret;
             }
             else
-                throw new FileNotFoundException(string.Format("file {0} does not exist", filename));
+                throw new FileNotFoundException(string.Format("file {0} does not exist", cacheFileName));
         }
 
     }

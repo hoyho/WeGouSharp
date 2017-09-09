@@ -26,7 +26,7 @@ namespace WeGouSharp
 
         string _vcode_url;
 
-        WechatCache _cache;
+        WechatCache weChatCache;
         public  static  List<string> _agent = new List<string>
         {
             "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
@@ -50,8 +50,8 @@ namespace WeGouSharp
 
         public WechatSogouBasic()
         {
-            this._cache = new WechatCache(Config.CacheDir, 60 * 60);
-            if (string.IsNullOrEmpty(this._cache.get(Config.CacheSessionName)))
+            this.weChatCache = new WechatCache(Config.CacheDir, 60 * 60);
+            if (weChatCache.Get<HttpWebRequest>(Config.CacheSessionName)!= null)
             {
                 //if (System.Web.HttpContext.Current.Session[Config.CacheSessionName] == null)
                 //{
@@ -444,19 +444,19 @@ namespace WeGouSharp
             EncryptArgs encrpt = new EncryptArgs();
             if (string.IsNullOrEmpty(uin))
             {
-                this._cache.set(keyword + "uin", uin, 36000);
-                this._cache.set(keyword + "key", key, 36000);
-                this._cache.set(keyword + "biz", biz, 36000);
-                this._cache.set(keyword + "pass_ticket", pass_ticket, 36000);
-                this._cache.set(keyword + "msgid", msgid, 36000);
+                this.weChatCache.Update(keyword + "uin", uin, 36000);
+                this.weChatCache.Update(keyword + "key", key, 36000);
+                this.weChatCache.Update(keyword + "biz", biz, 36000);
+                this.weChatCache.Update(keyword + "pass_ticket", pass_ticket, 36000);
+                this.weChatCache.Update(keyword + "msgid", msgid, 36000);
             }
             else
             {
-                uin = this._cache.get(keyword + "uin");
-                key = this._cache.get(keyword + "key");
-                biz = this._cache.get(keyword + "biz");
-                pass_ticket = this._cache.get(keyword + "pass_ticket");
-                msgid = this._cache.get(keyword + "msgid");
+                uin = weChatCache.Get<object> (keyword + "uin").ToString();
+                key = this.weChatCache.Get<object>(keyword + "key").ToString();
+                biz = this.weChatCache.Get<object>(keyword + "biz").ToString();
+                pass_ticket = this.weChatCache.Get<object>(keyword + "pass_ticket").ToString();
+                msgid = this.weChatCache.Get<object>(keyword + "msgid").ToString();
                 
                 encrpt.uin = uin;
                 encrpt.key = key;
