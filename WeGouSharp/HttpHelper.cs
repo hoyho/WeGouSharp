@@ -284,30 +284,83 @@ namespace WeGouSharp
 
 
         /// <summary>
-        /// 简单HTTP POST方法
+        /// 简单HTTP POST方法,用于post验证码，Content-Type: application/x-www-form-urlencoded
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public string Post(string url)
+        public string Post(string url, WebHeaderCollection headers,string postData)
         {
 
+            string responseText = "";
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                foreach (string key in headers.Keys)
+                {
+                    switch (key.ToLower())
+                    {
+                        case "user-agent":
+                            request.UserAgent = headers[key];
+                            break;
+                        case "referer":
+                            request.Referer = headers[key];
+                            break;
+                        case "host":
+                            request.Host = headers[key];
+                            break;
+                        case "contenttype":
+                            request.ContentType = headers[key];
+                            break;
+                        default:
+                            break;
+                    }
 
-            WebRequest request = WebRequest.Create(url);
-            request.Method = "POST";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            // Get the stream containing content returned by the server.
-            Stream dataStream = response.GetResponseStream();
-            // Open the stream using a StreamReader for easy access.
-            StreamReader reader = new StreamReader(dataStream);
-            // Read the content.
-            string responseFromServer = reader.ReadToEnd();
+                }
 
-            // Cleanup the streams and the response.
-            reader.Close();
-            dataStream.Close();
-            response.Close();
+                if (string.IsNullOrEmpty(request.Referer))
+                {
+                    request.Referer = "http://weixin.sogou.com/";
+                };
+                if (string.IsNullOrEmpty(request.Host))
+                {
+                    request.Host = "weixin.sogou.com";
+                };
 
-            return responseFromServer;
+                request.Method = "POST";
+
+                request.ContentType = "application/x-www-form-urlencoded";
+                byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+                // Set the ContentLength property of the WebRequest.  
+                request.ContentLength = byteArray.Length;
+
+                // Get the request stream.  
+                Stream inDataStream = request.GetRequestStream();
+                // Write the data to the request stream.  
+                inDataStream.Write(byteArray, 0, byteArray.Length);
+                // Close the Stream object.  
+                inDataStream.Close();
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                // Get the stream containing content returned by the server.
+                Stream outDataStream = response.GetResponseStream();
+                // Open the stream using a StreamReader for easy access.
+                StreamReader reader = new StreamReader(outDataStream);
+                // Read the content.
+                 responseText = reader.ReadToEnd();
+
+                // Cleanup the streams and the response.
+                reader.Close();
+                outDataStream.Close();
+                response.Close();
+
+                
+            }
+            catch(Exception e)
+            {
+                logger.Error(e);
+            }
+
+            return responseText;
         }
 
 
@@ -441,6 +494,7 @@ namespace WeGouSharp
         /// <returns></returns>
         public bool VerifyCodeForContinute(string url ,bool isUseOCR)
         {
+            bool isSuccess = false;
             logger.Debug("vcode appear, use VerifyCodeForContinute()");
             DateTime Epoch = new DateTime(1970, 1, 1,0,0,0,0);
             var timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
@@ -453,27 +507,40 @@ namespace WeGouSharp
             Console.WriteLine("请输入验证码：");
             string verifyCode = Console.ReadLine();
             string postURL = "http://mp.weixin.qq.com/mp/verifycode";
-            string postData = "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode ) + "}";
+            //string postData = "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode ) + "}";
+            //headers.Add("Host", "mp.weixin.qq.com");
+            //headers.Add("Referer", url);
+            //string remsg = netHelper.PostJson(postURL, headers, postData);
+
+            string postData = string.Format("cert={0}&input={1}",timeStamp17,verifyCode );// "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode) + "}";
             headers.Add("Host", "mp.weixin.qq.com");
             headers.Add("Referer", url);
-            string remsg = netHelper.PostJson(postURL, headers, postData);
+            string remsg = netHelper.Post(postURL, headers, postData);
 
-            JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  
-            int statusCode = (int)jo.GetValue("ret");
-
-            if (statusCode != 0)
+            try
             {
-                logger.Error("cannot unblock because " + jo.GetValue("msg"));
-                var vcodeException = new WechatSogouVcodeException();
-                vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
-                throw vcodeException;
-            }
-            else
+
+                JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  
+                int statusCode = (int)jo.GetValue("ret");
+
+                if (statusCode == 0)
+                {
+                    isSuccess = true;
+                }
+                else
+                {
+                    logger.Error("cannot unblock because " + jo.GetValue("msg"));
+                    var vcodeException = new WechatSogouVcodeException();
+                    vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
+                    throw vcodeException;
+                }
+            }catch(Exception e)
             {
-                Console.WriteLine("ocr");
-                return true;
+                logger.Error(e);
             }
 
+
+            return isSuccess;
         }
 
     }

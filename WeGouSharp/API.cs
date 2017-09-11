@@ -50,8 +50,8 @@ namespace WeGouSharp
                         accountInfo.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
                         accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
                         accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
-                        accountInfo.QrCode = WebUtility.UrlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
-                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim();
+                        accountInfo.QrCode = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
+                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim().Replace("<!--red_beg-->","").Replace("<!--red_end-->", "");
                         //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
                         //现在改为包含该script的即认证了
                         if (node.InnerText.Contains("document.write(authname('2'))"))
@@ -232,7 +232,7 @@ namespace WeGouSharp
 
 
         /// <summary>
-        /// 根据accountPageUrl或者wechatid或者wechatname 解析最近文章页并解析历史消息记录
+        /// 根据accountPageUrl或者wechatid或者wechatname 解析最近文章页并解析历史消息记录（只需要指明一个参数即可）
         /// </summary>
         /// <param name="accountPageUrl">最近文章地址</param>
         /// <param name="wechatId">微信号</param>
@@ -269,7 +269,7 @@ namespace WeGouSharp
 
 
         /// <summary>
-        /// 根据accountPageUrl，或者wechatid或者 wechatname获取公众号相关信息及已发消息（视频，语音或者文章）
+        /// 根据accountPageUrl，或者wechatid或者 wechatname获取公众号相关信息及已发消息（视频，语音或者文章）json格式
         /// </summary>
         /// <param name="accountPageUrl"></param>
         /// <param name="wechatId"></param>
@@ -307,7 +307,7 @@ namespace WeGouSharp
                 {
                     OfficialAccount = this._get_gzh_article_gzh_by_url_dict(text, url),
                     Message = _ResolveBatchMessageFromJson(this._ExtracJson(text), encryp)
-                }
+                },Newtonsoft.Json.Formatting.Indented
                 );
             return json ;
 
@@ -522,7 +522,7 @@ namespace WeGouSharp
             string url = "http://w.sugg.sogou.com/sugg/ajaj_json.jsp?key=" + keyWord + "&type=wxpub&pr=web";
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
-            var text = netHelper.Get(headers, url);
+            var text = netHelper.Get(headers, url,"default");
             string kwPatten = @"\[""" + keyWord + @""",\[(.*?)\]"; //match: \["b2c",\[(.*?)\]
             var regex = new Regex(kwPatten);
             try

@@ -19,29 +19,72 @@ namespace WeGouSharp
             XmlConfigurator.ConfigureAndWatch(configFile);
             //创建logger
              var logger = LogManager.GetLogger(typeof(Program));
-            logger.Warn("warnlog1");
-            var WechatCache = new WechatCache(Config.CacheDir, 3);
-            var f1= WechatCache.Add("cache1kEY键", "wechatCacheValue", 300);
-            string wechatCacheValue = WechatCache.Get<object>("cache1kEY键").ToString();
-            var x = WechatCache.Get<object>("notmotmpot");
-            string wechatCacheValue2 = Convert.ToString(WechatCache.Get<object>("cache1kEY"));
 
-            var has1 = WechatCache.Has("cache1kEY");
-            var has2 = WechatCache.Has("cache1kEY键");
-
-            var WechatCache2 = WechatCache.Update("cache1kEY键", "wechatCacheValue-update",1);
-             wechatCacheValue =WechatCache.Get<object>("cache1kEY键").ToString();
-
-            var WechatCache3 = WechatCache.Update("not exit", "", 1);
-            var wec = WechatCache.ClearAll();
-
+            
+            //创建实例
             WechatSogouApi Sogou = new WechatSogouApi();
-            HttpHelper net = new HttpHelper();
-            var ser = WechatCache.Add("mainobj", net, 1);
-            var deser = WechatCache.Get<WechatSogouApi>("mainobj");
-            var result = Sogou.GetOfficialAccountMessages("","bitsea",""); // get_gzh_message
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-            Console.Write(json);
+            string jsonOutPut = "";
+
+
+            //搜索某关键字
+            //var result = Sogou.SearchOfficialAccount("广州大学");
+            //var jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(result,Newtonsoft.Json.Formatting.Indented);
+            // Console.Write(jsonOutPut);
+
+
+
+            //获取一个公号
+            //var AccountInfo= Sogou.GetAccountInfoById("ME_volunteer");
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(AccountInfo, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            //搜索公众号文章
+            //var articleList = Sogou.SearchArticle("广州大学城");
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(articleList, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            //公号的最近群发，参数不能同时为空，以下表示搜索id gzdxxmt
+            //var accountMessages = Sogou.GetOfficialAccountMessages("", "gzdxxmt", "");
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(accountMessages, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            // var infoMsg = Sogou.GetOfficialAccountInfoAndMessages("","","广州大学城");
+            //  //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(infoMsg, Newtonsoft.Json.Formatting.Indented);
+            // Console.Write(infoMsg);
+
+
+            ///抽取文章正文
+            //var articleMain = Sogou.ExtractArticleMain("https://mp.weixin.qq.com/s?timestamp=1505141173&src=3&ver=1&signature=mjSrGDaCN1VXnicJAgNxoSq86-FiSBFQU*0UgI3MLPORXgGBKbPEvWwh3sZePZnfeK4lH59wa6SlqI97uuoDZRzIZr4G99vfrMO63vTgtSWGu6Oxa52I8pAZ4ZqzQbxPfM0yGWylLOlBXDJ7uWf*HM6pdD-H8Q79Oqg6jRkVRgM=", "");
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(articleMain, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            //获取联想词
+            //var suggest = Sogou.GetSuggestKeyWords("广州大学");
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(suggest, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            //获取首页热门
+            //var hotSearch = Sogou.GetTopWords();
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(hotSearch, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+
+            //获取首页其中一个主题分类的N页
+            //var categoryArticle = Sogou.GetArticleByCategoryIndex(1,2);
+            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(categoryArticle, Newtonsoft.Json.Formatting.Indented);
+            //Console.Write(jsonOutPut);
+
+            //获取首页全部分类的N页内容
+            var all = Sogou.GetAllRecentArticle(2);
+            jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(all, Newtonsoft.Json.Formatting.Indented);
+            Console.Write(jsonOutPut);
+            
+
             Console.ReadKey();
         }
     }

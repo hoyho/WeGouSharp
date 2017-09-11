@@ -158,6 +158,7 @@ namespace WeGouSharp
             {
                 //to do 解封
                 //result = self._ocr_for_get_gzh_article_by_url_text(url)
+
                 netHelper.VerifyCodeForContinute(url, false);
                 // netHelper.UnblockFrequencyLimit(url,true);
                 //解封后再次请求
