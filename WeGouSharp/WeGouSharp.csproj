@@ -84,17 +84,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Content Include="ScreenShot\ExtractArticleMain.png" />
-    <Content Include="ScreenShot\GetAccountInfoById.png" />
-    <Content Include="ScreenShot\GetAllRecentArticle.png" />
-    <Content Include="ScreenShot\GetArticleByCategoryIndex.png" />
-    <Content Include="ScreenShot\GetOfficialAccountInfoAndMessages.png" />
-    <Content Include="ScreenShot\GetOfficialAccountMessages.png" />
-    <Content Include="ScreenShot\GetSuggestKeyWords.png" />
-    <Content Include="ScreenShot\GetTopWords.png" />
-    <Content Include="ScreenShot\SearchArticle.png" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
