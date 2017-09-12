@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
@@ -63,44 +65,26 @@ namespace WeGouSharp
 
 
 
+        static public CookieCollection LoadCookieFromCache()
+        {
+            WechatCache cache = new WechatCache(Config.CacheDir, 1);
+            CookieCollection cc = cache.Get<CookieCollection>("cookieCollection");
+            if (cc == null)
+            {
+                cc = new CookieCollection();
+            }
+            
+            return cc;
+        }
+
+
 
         public static  string replaceSpace(string s)
         {
             return s.Replace(" ","").Replace("\r\n", "");
         }
 
-        public static string replaceHtml(string data)
-        {
-            //to do 
-            Dictionary<string, string> result = new Dictionary<string, string> { };
-            string json = (new JavaScriptSerializer()).Serialize(result);
-            return json;
 
-    //        if isinstance(data, dict):
-    //    return dict([(replace_html(k), replace_html(v)) for k, v in data.items()])
-    //            elif isinstance(data, list):
-    //    return [replace_html(l) for l in data]
-    //    elif isinstance(data, str):
-    //    return _replace_str_html(data)
-    //else:
-    //    return data
-        }
-
-        public static string get_elem_text(string element)
-        {
-
-            return "";
-    //        """抽取lxml.etree库中elem对象中文字
-
-    //Args:
-    //    elem: lxml.etree库中elem对象
-
-    //Returns:
-    //    elem中文字
-    //"""
-    //return ''.join([node.strip() for node in elem.itertext()])
-
-        }
    
 
 

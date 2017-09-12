@@ -152,6 +152,7 @@ namespace WeGouSharp
             headers.Add("host", "mp.weixin.qq.com");
             HttpHelper netHelper = new HttpHelper();
             string text = netHelper.Get(headers, url);
+            //string text = netHelper.Get(url);
             _tryCount  = 1;
             //netHelper.UnLock(false );
             if (text.Contains("为了保护你的网络安全，请输入验证码") || _tryCount > 1)
@@ -162,7 +163,7 @@ namespace WeGouSharp
                 netHelper.VerifyCodeForContinute(url, false);
                 // netHelper.UnblockFrequencyLimit(url,true);
                 //解封后再次请求
-                text = netHelper.Get(headers, url);
+                text = netHelper.Get(headers, url,"UTF-8",true);
                 if (text.Contains("验证码有误"))
                 {
                     Console.WriteLine("验证时输入错误");

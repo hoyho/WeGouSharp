@@ -35,13 +35,16 @@ namespace WeGouSharp
         /// <param name="headers"></param>
         /// <param name="url"></param>
         /// <returns>respondse</returns>
-        public string Get(WebHeaderCollection headers, string url ,string responseEncoding="UTF-8")
+        public string Get(WebHeaderCollection headers, string url ,string responseEncoding="UTF-8",bool isUseCookie = false)
         {
+
             string responseText = "";
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Method = "GET";
+                var request = (HttpWebRequest)WebRequest.Create(url);
+
+
+                    request.Method = "GET";
                 //request.Headers = headers;
                 foreach (string key in headers.Keys)
                 {
@@ -82,9 +85,21 @@ namespace WeGouSharp
                     int index = r.Next(WechatSogouBasic._agent.Count - 1);
                     request.UserAgent = WechatSogouBasic._agent[index];
                 }
- 
-               
+                if (isUseCookie)
+                {
+                    CookieCollection cc = Tools.LoadCookieFromCache();
+                    request.CookieContainer = new CookieContainer();
+                    request.CookieContainer.Add(cc);
+                }
+
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                if (isUseCookie && response.Cookies.Count >0)
+                {
+                    var cookieCollection = response.Cookies;
+                    WechatCache cache = new WechatCache(Config.CacheDir, 3000);
+                    if (!cache.Add("cookieCollection", cookieCollection, 3000)) { cache.Update("cookieCollection", cookieCollection, 3000); };
+                }
                 // Get the stream containing content returned by the server.
                 Stream dataStream = response.GetResponseStream();
 
@@ -177,7 +192,9 @@ namespace WeGouSharp
         {
 
 
-            WebRequest request = WebRequest.Create(url);
+             var  request = (HttpWebRequest)WebRequest.Create(url);
+     
+            
             request.Method = "GET";
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             // Get the stream containing content returned by the server.
@@ -213,7 +230,9 @@ namespace WeGouSharp
             try
             {
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                  var  request = (HttpWebRequest)WebRequest.Create(url);
+              
+
                 foreach (string key in headers.Keys)
                 {
                     switch (key.ToLower())
@@ -288,13 +307,16 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public string Post(string url, WebHeaderCollection headers,string postData)
+        public string Post(string url, WebHeaderCollection headers,string postData,bool isUseCookie= false )
         {
 
             string responseText = "";
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+                 var  request = (HttpWebRequest)WebRequest.Create(url);
+
+
                 foreach (string key in headers.Keys)
                 {
                     switch (key.ToLower())
@@ -326,6 +348,15 @@ namespace WeGouSharp
                     request.Host = "weixin.sogou.com";
                 };
 
+                if (isUseCookie)
+                {
+                    request.CookieContainer = new CookieContainer();
+                    CookieCollection cc = Tools.LoadCookieFromCache();
+                    request.CookieContainer.Add(cc);
+                }
+
+
+
                 request.Method = "POST";
 
                 request.ContentType = "application/x-www-form-urlencoded";
@@ -340,6 +371,14 @@ namespace WeGouSharp
                 // Close the Stream object.  
                 inDataStream.Close();
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+
+                if (isUseCookie && response.Cookies.Count > 0)
+                {
+                    var cookieCollection = response.Cookies;
+                    WechatCache cache = new WechatCache(Config.CacheDir, 3000);
+                    if (!cache.Add("cookieCollection", cookieCollection, 3000)) { cache.Update("cookieCollection", cookieCollection, 3000); };
+                }
 
                 // Get the stream containing content returned by the server.
                 Stream outDataStream = response.GetResponseStream();
@@ -398,15 +437,8 @@ namespace WeGouSharp
             {
 
             }
-            
-            //var bytes = Convert.FromBase64String(content);
-            //using (var imageFile = new FileStream(DateTime.Now.Ticks.ToString() + ".jpg", FileMode.Create))
-            //{
 
-            //    imageFile.Write(bytes, 0, bytes.Length);
-            //    imageFile.Flush();
-  
-            //}
+
 
             Console.WriteLine("请输入验证码：");
             string verifyCode = Console.ReadLine();
@@ -489,7 +521,7 @@ namespace WeGouSharp
 
 
         /// <summary>
-        /// 页面出现验证码，输入才能继续
+        /// 页面出现验证码，输入才能继续,此验证依赖cookie, 获取验证码的requset有个cookie，每次不同，需要在post验证码的时候带上
         /// </summary>
         /// <returns></returns>
         public bool VerifyCodeForContinute(string url ,bool isUseOCR)
@@ -498,24 +530,20 @@ namespace WeGouSharp
             logger.Debug("vcode appear, use VerifyCodeForContinute()");
             DateTime Epoch = new DateTime(1970, 1, 1,0,0,0,0);
             var timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
-            string codeurl = "http://mp.weixin.qq.com/mp/verifycode?cert=" + timeStamp17;
-            HttpHelper netHelper = new HttpHelper();
+            string codeurl = "https://mp.weixin.qq.com/mp/verifycode?cert=" + timeStamp17;
             WebHeaderCollection headers = new WebHeaderCollection();
-            var content = netHelper.Get(headers, codeurl);
+            var content = this.Get(headers, codeurl,"UTF-8",true);
             ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
             showImageHandle.BeginInvoke(content, null, null);
             Console.WriteLine("请输入验证码：");
             string verifyCode = Console.ReadLine();
-            string postURL = "http://mp.weixin.qq.com/mp/verifycode";
-            //string postData = "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode ) + "}";
-            //headers.Add("Host", "mp.weixin.qq.com");
-            //headers.Add("Referer", url);
-            //string remsg = netHelper.PostJson(postURL, headers, postData);
+            string postURL = "https://mp.weixin.qq.com/mp/verifycode";
 
+            timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
             string postData = string.Format("cert={0}&input={1}",timeStamp17,verifyCode );// "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode) + "}";
             headers.Add("Host", "mp.weixin.qq.com");
             headers.Add("Referer", url);
-            string remsg = netHelper.Post(postURL, headers, postData);
+            string remsg = this.Post(postURL, headers, postData,true);
 
             try
             {
