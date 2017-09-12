@@ -6,6 +6,26 @@
 蓝本为[Chyroc/WechatSogou](https://github.com/Chyroc/WechatSogou)
 在此还请各位大佬指教
 
+
+## 安装/引用
+默认编译类型为控制台应用
+也可修改为动态链接库（dll）然后在程序之间添加引用接口
+
+## 依赖
+- HtmlAgilityPack.dll //用于解析HTML
+- log4net.dll //日志
+- Emgu.CV.dll //验证码显示以及自动识别
+- Emgu.Util.dll
+- Newtonsoft.Json.dll //序列号
+
+以上引用可通过NuGet添加
+如(visual studio-->tools-->Nuget Package Manager-->Package Manager Console)：
+```
+Install-Package HtmlAgilityPack
+```
+也可以直接在项目packages文件夹获取
+
+
 ## 使用
 
 ### 初始化 API
@@ -27,7 +47,7 @@
 
 ## 数据结构：
 
-### 定义：
+### 公众号结构：
 ```C#
 public struct OfficialAccount
     {
@@ -45,6 +65,7 @@ public struct OfficialAccount
 ```
 
 ### 字段含义
+
 字段|含义
 ----|----
 AccountPageurl|微信公众号页
@@ -55,8 +76,11 @@ IsAuth|是否官方认证
 QrCode|二维码链接
 ProfilePicture|头像链接
 
+
+### 公号群发消息结构(含图文推送)
+
 ```c#
-    //公号群发消息
+   
     public struct BatchMessage
     {
         public int Meaasgeid;
@@ -87,8 +111,38 @@ ProfilePicture|头像链接
         public string VideoSrc;
 
         //others
-    }
+    }
+    
+```
 
+### 字段含义
+字段|含义
+----|----
+Meaasgeid|消息号
+SendDate|发出时间（unix时间戳）
+Type|消息类型:49:图文， 1:文字， 3:图片， 34:音频， 62:视频
+Content|文本内容（针对类型1即文字）
+ImageUrl|图片（针对类型3，即图片）
+PlayLength|播放长度（针对类型34，即音频，下同）
+FileId|音频文件id
+AudioSrc|音频源
+ContentUrl|文章来源（针对类型49，即图文，下同）
+Main|不明确
+Title|文章标题
+Digest|不明确
+SourceUrl|可能是阅读原文
+Cover|封面图
+Author|作者
+CopyrightStat|可能是否原创？
+CdnVideoId|视频id（针对类型62，即视频，下同）
+Thumb|视频缩略图
+VideoSrc|视频链接
+
+
+
+## 未完
+
+```C#
 
     public struct Article
     {
