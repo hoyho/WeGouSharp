@@ -11,7 +11,7 @@
 ### 初始化 API
 在test中直接调用
 
-'''
+```C#
             //创建实例
             WechatSogouApi Sogou = new WechatSogouApi();
 
@@ -21,7 +21,7 @@
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
             Console.Write(json);
             Console.ReadKey();
-'''
+```
 运行截图：
 ![运行结果](https://github.com/hoyho/WeGouSharp/blob/master/ScreenShot/SearchOfficialAccount.png?raw=true)
 
