@@ -3,7 +3,7 @@
 
 关于微信公共号爬虫的项目网上已经不少，然而基本大多数的都是使用Python实现
 鉴于鄙人是名.NET开发人员，于是又为广大微软系同胞创建了这个轮子，使用C#实现的微信爬虫
-蓝本为[Chyroc/WechatSogou](https://github.com/Chyroc/WechatSogou)
+蓝本为[Chyroc/WechatSogou](https://github.com/Chyroc/WechatSogou)，
 在此还请各位大佬指教
 
 
@@ -179,3 +179,4 @@ OfficialAccount|关联的公众号（信息不全，仅供参考）
 
 ## 其他
 关于验证码，目前手动输入，后期接入自动识别或者打码平台API
+欢迎各位批评，提交issue以及fork
