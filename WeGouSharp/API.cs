@@ -305,7 +305,7 @@ namespace WeGouSharp
                 (
                 new
                 {
-                    OfficialAccount = this._get_gzh_article_gzh_by_url_dict(text, url),
+                    OfficialAccount = this._ResolveOfficialAccount(text, url),
                     Message = _ResolveBatchMessageFromJson(this._ExtracJson(text), encryp)
                 },Newtonsoft.Json.Formatting.Indented
                 );

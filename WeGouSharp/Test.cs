@@ -44,9 +44,9 @@ namespace WeGouSharp
             //Console.Write(jsonOutPut);
 
             //获取公号以及群发消息
-            //var infoMsg = Sogou.GetOfficialAccountInfoAndMessages("", "", "广州大学城");
-            //jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(infoMsg, Newtonsoft.Json.Formatting.Indented);
-            //Console.Write(infoMsg);
+            var infoMsg = Sogou.GetOfficialAccountInfoAndMessages("", "", "广州大学");
+            jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(infoMsg, Newtonsoft.Json.Formatting.Indented);
+            Console.Write(infoMsg);
 
 
             ///抽取文章正文

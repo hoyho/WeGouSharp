@@ -19,7 +19,7 @@ namespace WeGouSharp
     }
 
 
-    class WechatSogouBasic
+     class WechatSogouBasic
     {
         ILog logger = LogManager.GetLogger(typeof(Program));
 
@@ -185,7 +185,7 @@ namespace WeGouSharp
         /// <param name="text"></param>
         /// <param name="url"></param>
         /// <returns></returns>
-        public OfficialAccount _get_gzh_article_gzh_by_url_dict(string htmlText,string url)
+        public OfficialAccount _ResolveOfficialAccount(string htmlText,string url)
         {
             OfficialAccount officialAccount = new OfficialAccount();
             officialAccount.AccountPageurl = url;
