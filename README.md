@@ -56,9 +56,8 @@ public struct OfficialAccount
         public string WeChatId;
         public string Name;
         public string Introduction;
-        public bool IsAuth; //是否官方认证账号
+        public bool IsAuth; 
         public string QrCode;
-       // public string Profile;
         public string ProfilePicture;//
         public string RecentArticleUrl;
     }
@@ -84,16 +83,16 @@ ProfilePicture|头像链接
     public struct BatchMessage
     {
         public int Meaasgeid;
-        public string  SendDate; //时间戳
+        public string  SendDate;
         public string Type; //49:图文，1:文字，3:图片，34:音频，62:视频
 
-        public string Content; // for type 1
+        public string Content; 
 
-        public string ImageUrl; //for type 49
+        public string ImageUrl; 
 
-        public string PlayLength;// for type 音频
-        public int FileId;// for type 音频 or 图文
-        public string AudioSrc; // for type 音频
+        public string PlayLength;
+        public int FileId;
+        public string AudioSrc;
 
         //for type 图文
         public string ContentUrl;
@@ -140,28 +139,43 @@ VideoSrc|视频链接
 
 
 
-## 未完
+### 文章结构
 
 ```C#
-
     public struct Article
     {
         public string Url;
         public List<string>Imgs;
         public string Title;
-        public string Brief;//文章简介
+        public string Brief;
         public string Time;
-       // public string officialAccount;
-        public string ArticleListUrl;//???
+        public string ArticleListUrl;
         public OfficialAccount officialAccount;
-    }
+    }
+```
+### 字段含义
+字段|含义
+----|----
+Url|文章链接
+Imgs|封面图（可能多个）
+Title|文章标题
+Brief|简介
+Time|发表日期（unix时间戳）
+OfficialAccount|关联的公众号（信息不全，仅供参考）
 
-    //首页搜索热词
+
+
+### 搜索榜结构
+```C#
     public struct HotWord
     {
         public int Rank;//排行
-        public string Word;
-        public string JumpLink;
-        public int HotDegree; //热度
+        public string Word;
+        public string JumpLink; //相关链接
+        public int HotDegree; //热度
     }
 ```
+
+
+## 其他
+关于验证码，目前手动输入，后期接入自动识别或者打码平台API
