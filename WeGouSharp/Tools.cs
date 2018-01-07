@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -20,31 +21,16 @@ namespace WeGouSharpPlus
         {
 
             var bytes = Convert.FromBase64String(base64String);
-            using (MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length))
-            {
-                //tofix
-                //Emgucv is incompatible with dotnet core 
-                // Convert byte[] to Image
-                ms.Write(bytes, 0, bytes.Length);
-                //Bitmap bmpImage = new Bitmap(ms);
-                //Image<Bgr, Byte> myImage = new Image<Bgr, Byte>(bmpImage);
+            //totest
+            //Emgucv is incompatible with dotnet core try to use OpenCVSharp
+            string windowName = "Your Captcha"; //The name of the window
+            Cv2.NamedWindow(windowName); //Create the window using the specific name
+            Mat matImg = Mat.FromImageData(bytes, ImreadModes.Color);
+            Cv2.Resize(matImg, matImg, new OpenCvSharp.Size(260, 84)); //the dst image size,e.g.100x100
 
-
-
-                //String windowName = "Your Captcha"; //The name of the window
-                //CvInvoke.NamedWindow(windowName); //Create the window using the specific name
-                //Mat img = myImage.Mat;
-                //CvInvoke.Resize(img, img, new Size(260, 84)); //the dst image size,e.g.100x100
-
-                //CvInvoke.Imshow(windowName, img); //Show the image
-                ////CvInvoke.WaitKey(0);  //Wait for the key pressing event
-                //CvInvoke.WaitKey(0);  //no wait
-                //CvInvoke.DestroyWindow(windowName); //Destroy the window if key is pressed
-
-            }
-
-
-
+            Cv2.ImShow(windowName, matImg); //Show the image
+            Cv2.WaitKey(0);  //no wait
+            Cv2.DestroyWindow(windowName); //Destroy the window if key is pressed
 
 
         }
