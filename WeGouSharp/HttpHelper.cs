@@ -100,17 +100,17 @@ namespace WeGouSharpPlus
                 if (response.Headers.Get("Content-Type") == "image/jpeg" || response.Headers.Get("Content-Type") == "image/jpg")
                 {
                  
-                    //tofix
-                    //Image img = Image.FromStream(dataStream, true);
+                    //totest
+                    Image img = Image.FromStream(dataStream, true);
 
-                    //using (MemoryStream ms = new MemoryStream())
-                    //{
+                    using (MemoryStream ms = new MemoryStream())
+                    {
 
-                    //    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    //    byte[] imageBytes = ms.ToArray();
-                    //    string base64String = Convert.ToBase64String(imageBytes);
-                    //    responseText = base64String;
-                    //}
+                        img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        byte[] imageBytes = ms.ToArray();
+                        string base64String = Convert.ToBase64String(imageBytes);
+                        responseText = base64String;
+                    }
 
                 }
                 else //read response string

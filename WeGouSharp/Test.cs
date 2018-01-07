@@ -17,7 +17,7 @@ namespace WeGouSharpPlus
         {
 
             //创建实例
-            WechatSogouApi Sogou = new WechatSogouApi();
+            WechatSogouAPI Sogou = new WechatSogouAPI();
             string jsonOutPut = "";
 
 
