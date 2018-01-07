@@ -14,7 +14,6 @@ namespace WeGouSharpPlus.Model
         /// </summary>
         public int Rank { get; set; }
 
-
         public string Word { get; set; }
 
         public string JumpLink { get; set; }
