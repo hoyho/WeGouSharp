@@ -1,15 +1,14 @@
-﻿using log4net;
+﻿using HtmlAgilityPack;
+using log4net;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HtmlAgilityPack;
-using System.Text.RegularExpressions;
 using System.Net;
-using Newtonsoft.Json.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using WeGouSharpPlus.Model;
 
-namespace WeGouSharp
+namespace WeGouSharpPlus
 {
     class API
     {
@@ -19,7 +18,7 @@ namespace WeGouSharp
 
     class WechatSogouApi : WechatSogouBasic
     {
-        
+
         ILog logger = LogManager.GetLogger(typeof(Program));
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace WeGouSharp
                         accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
                         accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
                         accountInfo.QrCode = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
-                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim().Replace("<!--red_beg-->","").Replace("<!--red_end-->", "");
+                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
                         //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
                         //现在改为包含该script的即认证了
                         if (node.InnerText.Contains("document.write(authname('2'))"))
@@ -72,10 +71,10 @@ namespace WeGouSharp
 
                 }
             }
-            
 
-          
-            return accountList; 
+
+
+            return accountList;
 
         }
 
@@ -94,7 +93,7 @@ namespace WeGouSharp
         public OfficialAccount GetAccountInfoById(string wechatid)
         {
             //"""
-            OfficialAccount  info = this.SearchOfficialAccount(wechatid, 1)[0]; //可能为空
+            OfficialAccount info = this.SearchOfficialAccount(wechatid, 1)[0]; //可能为空
             return info;
             // return info[0] if info else False
         }
@@ -108,7 +107,7 @@ namespace WeGouSharp
         /// <param name="name"></param>
         /// <param name="page"></param>
         /// <returns></returns>
-        public List<Article > SearchArticle(string keyword, int page=1)
+        public List<Article> SearchArticle(string keyword, int page = 1)
         {
             List<Article> articleList = new List<Article>();
             string text = this._SearchArticle_Html(keyword, page);
@@ -139,9 +138,9 @@ namespace WeGouSharp
                         time = node.SelectSingleNode("div[2]/div/span/script/text()").InnerHtml;
                         if (node.SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a") != null)
                         {
-                            account.IsAuth = Convert.ToBoolean(Convert.ToInt16(node.SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a").GetAttributeValue("data-isv", "")) );
+                            account.IsAuth = Convert.ToBoolean(Convert.ToInt16(node.SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a").GetAttributeValue("data-isv", "")));
                         }
-                        
+
                         account.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div[@class='txt-box']/h3/a").GetAttributeValue("href", ""));
                         if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
@@ -168,17 +167,17 @@ namespace WeGouSharp
                         }
                         brief = node.SelectSingleNode("div/p").InnerText;
                         time = node.SelectSingleNode("div/div[2]/span/script/text()").InnerText;
-                        if (node.SelectSingleNode("div/div[2]/a")!= null )
+                        if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
                             account.IsAuth = Convert.ToBoolean(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("data-isv", ""));
                         }
                         account.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("href", ""));
                         account.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("data-headimage", ""));
-                        if ( node.SelectSingleNode("div/div[2]/a") != null)
+                        if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
                             account.Name = node.SelectSingleNode("div/div[2]/a").InnerText;
                         }
-               
+
                     }
 
 
@@ -194,7 +193,7 @@ namespace WeGouSharp
 
                     if (!string.IsNullOrEmpty(brief))
                     {
-                        brief = brief.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "").Replace("<em>","").Replace("</em>","");
+                        brief = brief.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "").Replace("<em>", "").Replace("</em>", "");
 
                     }
                     else
@@ -221,10 +220,10 @@ namespace WeGouSharp
                     logger.Error(e);
                 }
             }
-                    
-                   
-          
-            
+
+
+
+
 
             return articleList;
         }
@@ -239,7 +238,7 @@ namespace WeGouSharp
         /// <param name="wechatName">微信昵称(不推荐，因为不唯一)</param>
         /// <remarks> 最保险的做法是提供url或者wechatid</remarks>
         /// <returns> list of batchMessage 一定含有字段qunfa_id,datetime,type 当type不同时，含有不同的字段，具体见文档</returns>
-        public List<BatchMessage > GetOfficialAccountMessages(string accountPageUrl="", string wechatId="", string wechatName="")
+        public List<BatchMessage> GetOfficialAccountMessages(string accountPageUrl = "", string wechatId = "", string wechatName = "")
         {
             string htmlStr = "";
             if (!string.IsNullOrEmpty(accountPageUrl))
@@ -251,7 +250,7 @@ namespace WeGouSharp
 
                 var account = this.GetAccountInfoById(wechatId);
                 accountPageUrl = account.AccountPageurl;
-                htmlStr = this._GetRecentArticle_Html (accountPageUrl);
+                htmlStr = this._GetRecentArticle_Html(accountPageUrl);
             }
             else if (!string.IsNullOrEmpty(wechatName))
             {
@@ -263,7 +262,7 @@ namespace WeGouSharp
             EncryptArgs encry = new EncryptArgs();
             string articleJsonString = this._ExtracJson(htmlStr);
             return this._ResolveBatchMessageFromJson(articleJsonString, encry);
-            
+
         }
 
 
@@ -307,9 +306,9 @@ namespace WeGouSharp
                 {
                     OfficialAccount = this._ResolveOfficialAccount(text, url),
                     Message = _ResolveBatchMessageFromJson(this._ExtracJson(text), encryp)
-                },Newtonsoft.Json.Formatting.Indented
+                }, Newtonsoft.Json.Formatting.Indented
                 );
-            return json ;
+            return json;
 
         }
 
@@ -323,21 +322,23 @@ namespace WeGouSharp
         /// <param name="text"></param>
         /// <remarks>deal_article_content</remarks>
         /// <returns></returns>
-        public string  ExtractArticleMain(string url,string articlePageHtml="")
+        public string ExtractArticleMain(string url, string articlePageHtml = "")
         {
 
             if (!string.IsNullOrEmpty(articlePageHtml))
             {
                 //pass
-            }else if(!string.IsNullOrEmpty(url))
+            }
+            else if (!string.IsNullOrEmpty(url))
             {
                 articlePageHtml = this._GetOfficialAccountArticleHtml(url);
-            }else
+            }
+            else
             {
                 throw new Exception("deal_content need param url or text");
             }
 
-            HtmlDocument  doc = new HtmlDocument();
+            HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(articlePageHtml);
             string bodyContent = "";
             try
@@ -363,7 +364,7 @@ namespace WeGouSharp
         /// <remarks>deal_article_related</remarks>
         /// <returns>相似文章（json格式）</returns>
         [Obsolete]
-        public string GetRelatedArticleJson(string url,string title)
+        public string GetRelatedArticleJson(string url, string title)
         {
             return this._GetRelatedJson(url, title);
 
@@ -382,13 +383,15 @@ namespace WeGouSharp
         public string RequireArticleComment(string url, string articlePageHtml = "")
         {
 
-            if(string.IsNullOrEmpty(articlePageHtml))
+            if (string.IsNullOrEmpty(articlePageHtml))
             {
                 //
-            }else if (string.IsNullOrEmpty( url))
+            }
+            else if (string.IsNullOrEmpty(url))
             {
                 articlePageHtml = this._GetOfficialAccountArticleHtml(url);
-            }else
+            }
+            else
             {
                 throw new Exception("deal_content need param url or text");
             }
@@ -403,12 +406,12 @@ namespace WeGouSharp
             var sgDataMatch = reg.Match(sg_data);
             string commentReqUrl = "http://mp.weixin.qq.com/mp/getcomment?src=" + sgDataMatch.Groups[0].Value + "&ver=" + sgDataMatch.Groups[1].Value +
                  "&timestamp=" + sgDataMatch.Groups[2] + "&signature=" + sgDataMatch.Groups[3].Value + "&uin=&key=&pass_ticket=&wxtoken=&devicetype=&clientversion=0&x5=0";
-            
+
             WebHeaderCollection headers = new WebHeaderCollection();
-            headers.Add("host","mp.weixin.qq.com");
+            headers.Add("host", "mp.weixin.qq.com");
             headers.Add("referer", "http://mp.weixin.qq.com");
             HttpHelper netHelper = new HttpHelper();
-            string commentText = netHelper.Get(headers , commentReqUrl);
+            string commentText = netHelper.Get(headers, commentReqUrl);
             JObject commentJson = new JObject();
             try
             {
@@ -451,16 +454,18 @@ namespace WeGouSharp
         /// <returns>"阅读原文(的链接)"</returns>
 
         [Obsolete]
-       string RequireReadOriginal(string url, string articlePageHtml = "")
+        string RequireReadOriginal(string url, string articlePageHtml = "")
         {
             string originalLink = "";
             if (!string.IsNullOrEmpty(articlePageHtml))
             {
                 //
-            }else if(!string.IsNullOrEmpty(url))
+            }
+            else if (!string.IsNullOrEmpty(url))
             {
                 articlePageHtml = this._GetOfficialAccountArticleHtml(url);
-            }else
+            }
+            else
             {
                 throw new Exception("dearlArticleOriginal need param url or text");
             }
@@ -470,12 +475,14 @@ namespace WeGouSharp
                 Regex reg = new Regex("var msg_link = \"(.*?)\";  ");
                 Match match = reg.Match(articlePageHtml);
                 originalLink = match.Groups[0].Value.Replace("amp;", "");
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 if (articlePageHtml.Contains("系统出错"))
                 {
                     logger.Debug("系统出错 - 链接问题，正常");
-                }else if(articlePageHtml.Contains("此内容因违规无法查看"))
+                }
+                else if (articlePageHtml.Contains("此内容因违规无法查看"))
                 {
                     logger.Debug("此内容因违规无法查看 - 剔除此类文章");
                 }
@@ -485,14 +492,16 @@ namespace WeGouSharp
                     if (!String.IsNullOrEmpty(url))
                     {
                         logger.Error(url);
-                    }else
+                    }
+                    else
                     {
                         var reg = new Regex("<title>(.*?)</title>");
-                        Match match= reg.Match(articlePageHtml);
-                      if(match !=null)
+                        Match match = reg.Match(articlePageHtml);
+                        if (match != null)
                         {
                             logger.Error(match.Groups[0].Value);
-                        }else
+                        }
+                        else
                         {
                             logger.Error(articlePageHtml);
                         }
@@ -500,7 +509,7 @@ namespace WeGouSharp
                 }
                 throw new Exception();
 
-            
+
             }
 
 
@@ -522,7 +531,7 @@ namespace WeGouSharp
             string url = "http://w.sugg.sogou.com/sugg/ajaj_json.jsp?key=" + keyWord + "&type=wxpub&pr=web";
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
-            var text = netHelper.Get(headers, url,"default");
+            var text = netHelper.Get(headers, url, "default");
             string kwPatten = @"\[""" + keyWord + @""",\[(.*?)\]"; //match: \["b2c",\[(.*?)\]
             var regex = new Regex(kwPatten);
             try
@@ -548,7 +557,7 @@ namespace WeGouSharp
         /// 获取首页热词，排行和热度
         /// </summary>
         /// <returns></returns>
-        public List<HotWord>  GetTopWords()
+        public List<HotWord> GetTopWords()
         {
 
 
@@ -557,14 +566,14 @@ namespace WeGouSharp
             headers.Add("Host", "weixin.sogou.com");
             headers.Add("Referer", "http://weixin.sogou.com/");
             HttpHelper netHelper = new HttpHelper();
-            string text = netHelper.Get(headers, url,"UTF-8") ;
+            string text = netHelper.Get(headers, url, "UTF-8");
 
             HtmlDocument pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             var targetArea = pageDoc.DocumentNode.SelectNodes("//*[@id='topwords']/li");
             List<HotWord> listTopWords = new List<HotWord>();
-           
-            foreach(var li in targetArea)
+
+            foreach (var li in targetArea)
             {
                 HotWord hotWord = new HotWord();
                 try
@@ -575,7 +584,7 @@ namespace WeGouSharp
                     hotWord.HotDegree = Convert.ToInt16(li.SelectSingleNode("span/span").GetAttributeValue("style", "").Replace("width:", "").Replace("%", "").Trim());
                     listTopWords.Add(hotWord);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     logger.Debug(e);
                 }
@@ -587,7 +596,7 @@ namespace WeGouSharp
         }
 
 
-        
+
 
         /// <summary>
         /// GetArticleByCategoryIndex
@@ -600,7 +609,7 @@ namespace WeGouSharp
         {
 
             string pageStr = "";// "pc_" + page;
-            if(page == 0)
+            if (page == 0)
             {
                 pageStr = "pc_" + categoryIndex; //分类N第0页格式为xxxx/pc/pc_N/pc_N.html
             }
@@ -619,12 +628,12 @@ namespace WeGouSharp
             headers.Add("Referer", "http://weixin.sogou.com/");
             headers.Add("Accept", "*/*");
             HttpHelper NetHelper = new HttpHelper();
-            string text = NetHelper.Get(headers,url,"UTF-8");
+            string text = NetHelper.Get(headers, url, "UTF-8");
 
             HtmlDocument pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             string targetXpath = "";
-            if(page == 0)
+            if (page == 0)
             {
                 targetXpath = "//ul[@class='news-list']/li";
             }
@@ -636,7 +645,7 @@ namespace WeGouSharp
 
             List<Article> ListArticle = new List<Article>();
 
-            if(targetArea != null)
+            if (targetArea != null)
             {
                 foreach (var li in targetArea)
                 {
@@ -683,10 +692,10 @@ namespace WeGouSharp
 
             }
 
-            
+
 
             return ListArticle;
-          
+
         }
 
 
@@ -701,13 +710,13 @@ namespace WeGouSharp
 
             List<Article> listArticles = new List<Article>();
 
-            for (int cateIndex= 0; cateIndex < 20; cateIndex ++)
+            for (int cateIndex = 0; cateIndex < 20; cateIndex++)
             {
                 int pageIndex = 0;
                 var articles = this.GetArticleByCategoryIndex(cateIndex, pageIndex);
                 //while(!(articles == null))
-                    //
-                while(pageIndex < maxPage)
+                //
+                while (pageIndex < maxPage)
                 {
                     listArticles.AddRange(articles);
                     //listArticles.Add(urls.First().url);
@@ -722,43 +731,43 @@ namespace WeGouSharp
 
 
 
-        private  void deal_mass_send_msg_page(string wechatid,bool updatecache =true)
+        private void deal_mass_send_msg_page(string wechatid, bool updatecache = true)
         {
             string url = "http://mp.weixin.qq.com/mp/getmasssendmsg?";
             // uin, key, biz, pass_ticket, frommsgid 
             //  var encry   = this._uinkeybiz("")
 
 
-        //    try:
-        //    session = self._cache_history_session(wechatid)
-        //        r = session.get(url, headers ={ 'Host': 'mp.weixin.qq.com'}, verify = False)
-        //    rdic = eval(r.text)
-        //        if rdic['ret'] == 0:
+            //    try:
+            //    session = self._cache_history_session(wechatid)
+            //        r = session.get(url, headers ={ 'Host': 'mp.weixin.qq.com'}, verify = False)
+            //    rdic = eval(r.text)
+            //        if rdic['ret'] == 0:
 
-        //        data_dict_from_str = self._str_to_dict(rdic['general_msg_list'])
-    
-        //        if rdic['is_continue'] == 0 and rdic['count'] == 0:
-        //            raise WechatSogouEndException()
-    
-        //        msg_dict = self._deal_gzh_article_dict(data_dict_from_str)
-        //            msg_dict_new = reversed(msg_dict)
-        //            msgid = 0
-        //            for m in msg_dict_new:
-        //            if int(m['type']) == 49:
-        //                msgid = m['qunfa_id']
-        //                    break
-    
-        //        if updatecache:
-        //            self._uinkeybiz(wechatid, rdic['uin_code'], rdic['key'], rdic['bizuin_code'], pass_ticket, msgid)
-    
-        //        return msg_dict
-        //        else:
-        //        logger.error('deal_mass_send_msg_page ret ' + str(rdic['ret']) + ' errmsg ' + rdic['errmsg'])
-        //            raise WechatSogouHistoryMsgException(
-        //                'deal_mass_send_msg_page ret ' + str(rdic['ret']) + ' errmsg ' + rdic['errmsg'])
-        //except AttributeError:
-        //    logger.error('deal_mass_send_msg_page error, please delete cache file')
-        //        raise WechatSogouHistoryMsgException('deal_mass_send_msg_page error, please delete cache file')
+            //        data_dict_from_str = self._str_to_dict(rdic['general_msg_list'])
+
+            //        if rdic['is_continue'] == 0 and rdic['count'] == 0:
+            //            raise WechatSogouEndException()
+
+            //        msg_dict = self._deal_gzh_article_dict(data_dict_from_str)
+            //            msg_dict_new = reversed(msg_dict)
+            //            msgid = 0
+            //            for m in msg_dict_new:
+            //            if int(m['type']) == 49:
+            //                msgid = m['qunfa_id']
+            //                    break
+
+            //        if updatecache:
+            //            self._uinkeybiz(wechatid, rdic['uin_code'], rdic['key'], rdic['bizuin_code'], pass_ticket, msgid)
+
+            //        return msg_dict
+            //        else:
+            //        logger.error('deal_mass_send_msg_page ret ' + str(rdic['ret']) + ' errmsg ' + rdic['errmsg'])
+            //            raise WechatSogouHistoryMsgException(
+            //                'deal_mass_send_msg_page ret ' + str(rdic['ret']) + ' errmsg ' + rdic['errmsg'])
+            //except AttributeError:
+            //    logger.error('deal_mass_send_msg_page error, please delete cache file')
+            //        raise WechatSogouHistoryMsgException('deal_mass_send_msg_page error, please delete cache file')
 
 
 
@@ -770,8 +779,4 @@ namespace WeGouSharp
 
 
     }
-
-
 }
-
-

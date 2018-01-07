@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace WeGouSharp
+namespace WeGouSharpPlus
 {
-
 
     /// <summary>
     /// Summary description for Class1
@@ -21,7 +23,7 @@ namespace WeGouSharp
 
             //搜索某关键字
             var result = Sogou.SearchOfficialAccount("广州大学");
-             jsonOutPut = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
+            jsonOutPut = JsonConvert.SerializeObject(result,Formatting.Indented);
             Console.Write(jsonOutPut);
 
 
@@ -81,7 +83,6 @@ namespace WeGouSharp
             Console.ReadKey();
         }
     }
-
 
 
 

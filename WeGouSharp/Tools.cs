@@ -1,18 +1,12 @@
-﻿using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web.Script.Serialization;
 
-namespace WeGouSharp
+
+namespace WeGouSharpPlus
 {
     class Tools
     {
@@ -28,28 +22,24 @@ namespace WeGouSharp
             var bytes = Convert.FromBase64String(base64String);
             using (MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length))
             {
+                //tofix
+                //Emgucv is incompatible with dotnet core 
                 // Convert byte[] to Image
                 ms.Write(bytes, 0, bytes.Length);
-                Bitmap bmpImage = new Bitmap(ms);
-                Image<Bgr, Byte> myImage = new Image<Bgr, Byte>(bmpImage);
+                //Bitmap bmpImage = new Bitmap(ms);
+                //Image<Bgr, Byte> myImage = new Image<Bgr, Byte>(bmpImage);
 
 
 
-                String windowName = "Your Captcha"; //The name of the window
-                CvInvoke.NamedWindow(windowName); //Create the window using the specific name
-                Mat img = myImage.Mat;
-                CvInvoke.Resize(img, img, new Size(260, 84)); //the dst image size,e.g.100x100
+                //String windowName = "Your Captcha"; //The name of the window
+                //CvInvoke.NamedWindow(windowName); //Create the window using the specific name
+                //Mat img = myImage.Mat;
+                //CvInvoke.Resize(img, img, new Size(260, 84)); //the dst image size,e.g.100x100
 
-                //img.SetTo(new Bgr(255, 0, 0).MCvScalar); // set it to Blue color
-
-                //Draw "Hello, world." on the image using the specific font
-                //CvInvoke.PutText(myImage, "你的验证码", new System.Drawing.Point(100, 30), FontFace.HersheyComplex, 1.0, new Bgr(0, 255, 0).MCvScalar);
-
-
-                CvInvoke.Imshow(windowName, img); //Show the image
-                //CvInvoke.WaitKey(0);  //Wait for the key pressing event
-                CvInvoke.WaitKey(0);  //no wait
-                CvInvoke.DestroyWindow(windowName); //Destroy the window if key is pressed
+                //CvInvoke.Imshow(windowName, img); //Show the image
+                ////CvInvoke.WaitKey(0);  //Wait for the key pressing event
+                //CvInvoke.WaitKey(0);  //no wait
+                //CvInvoke.DestroyWindow(windowName); //Destroy the window if key is pressed
 
             }
 
@@ -73,21 +63,22 @@ namespace WeGouSharp
             {
                 cc = new CookieCollection();
             }
-            
+
             return cc;
         }
 
 
 
-        public static  string replaceSpace(string s)
+        public static string replaceSpace(string s)
         {
-            return s.Replace(" ","").Replace("\r\n", "");
+            return s.Replace(" ", "").Replace("\r\n", "");
         }
 
 
-   
+
 
 
 
     }
+
 }

@@ -1,25 +1,15 @@
-﻿using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Structure;
-using Emgu.CV.Util;
-using log4net;
+﻿using log4net;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using static WeGouSharp.Tools;
+using System.Drawing;
+using static WeGouSharpPlus.Tools;
 
-namespace WeGouSharp
+namespace WeGouSharpPlus
 {
-
-
     class HttpHelper
     {
 
@@ -35,7 +25,7 @@ namespace WeGouSharp
         /// <param name="headers"></param>
         /// <param name="url"></param>
         /// <returns>respondse</returns>
-        public string Get(WebHeaderCollection headers, string url ,string responseEncoding="UTF-8",bool isUseCookie = false)
+        public string Get(WebHeaderCollection headers, string url, string responseEncoding = "UTF-8", bool isUseCookie = false)
         {
 
             string responseText = "";
@@ -44,7 +34,7 @@ namespace WeGouSharp
                 var request = (HttpWebRequest)WebRequest.Create(url);
 
 
-                    request.Method = "GET";
+                request.Method = "GET";
                 //request.Headers = headers;
                 foreach (string key in headers.Keys)
                 {
@@ -94,7 +84,7 @@ namespace WeGouSharp
 
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-                if (isUseCookie && response.Cookies.Count >0)
+                if (isUseCookie && response.Cookies.Count > 0)
                 {
                     var cookieCollection = response.Cookies;
                     WechatCache cache = new WechatCache(Config.CacheDir, 3000);
@@ -109,18 +99,18 @@ namespace WeGouSharp
                 //如果response是图片，则返回以base64方式返回图片内容，否则返回html内容
                 if (response.Headers.Get("Content-Type") == "image/jpeg" || response.Headers.Get("Content-Type") == "image/jpg")
                 {
-                    Image img = Image.FromStream(dataStream, true);
+                 
+                    //tofix
+                    //Image img = Image.FromStream(dataStream, true);
 
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        // Convert Image to byte[]
-                        //img.Save("myfile.jpg");
-                        img.Save(ms,System.Drawing.Imaging.ImageFormat.Jpeg);
-                        byte[] imageBytes = ms.ToArray();
-                        // Convert byte[] to Base64 String
-                        string base64String = Convert.ToBase64String(imageBytes);
-                        responseText = base64String;
-                    }
+                    //using (MemoryStream ms = new MemoryStream())
+                    //{
+
+                    //    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    //    byte[] imageBytes = ms.ToArray();
+                    //    string base64String = Convert.ToBase64String(imageBytes);
+                    //    responseText = base64String;
+                    //}
 
                 }
                 else //read response string
@@ -142,7 +132,7 @@ namespace WeGouSharp
                         default:
                             encoding = Encoding.Default;
                             break;
-                               
+
                     }
                     StreamReader reader = new StreamReader(dataStream, encoding);//System.Text.Encoding.Default
                     // Read the content.
@@ -192,9 +182,9 @@ namespace WeGouSharp
         {
 
 
-             var  request = (HttpWebRequest)WebRequest.Create(url);
-     
-            
+            var request = (HttpWebRequest)WebRequest.Create(url);
+
+
             request.Method = "GET";
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             // Get the stream containing content returned by the server.
@@ -230,8 +220,8 @@ namespace WeGouSharp
             try
             {
 
-                  var  request = (HttpWebRequest)WebRequest.Create(url);
-              
+                var request = (HttpWebRequest)WebRequest.Create(url);
+
 
                 foreach (string key in headers.Keys)
                 {
@@ -307,14 +297,14 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public string Post(string url, WebHeaderCollection headers,string postData,bool isUseCookie= false )
+        public string Post(string url, WebHeaderCollection headers, string postData, bool isUseCookie = false)
         {
 
             string responseText = "";
             try
             {
 
-                 var  request = (HttpWebRequest)WebRequest.Create(url);
+                var request = (HttpWebRequest)WebRequest.Create(url);
 
 
                 foreach (string key in headers.Keys)
@@ -385,16 +375,16 @@ namespace WeGouSharp
                 // Open the stream using a StreamReader for easy access.
                 StreamReader reader = new StreamReader(outDataStream);
                 // Read the content.
-                 responseText = reader.ReadToEnd();
+                responseText = reader.ReadToEnd();
 
                 // Cleanup the streams and the response.
                 reader.Close();
                 outDataStream.Close();
                 response.Close();
 
-                
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.Error(e);
             }
@@ -404,7 +394,7 @@ namespace WeGouSharp
 
 
 
- 
+
 
 
 
@@ -423,7 +413,7 @@ namespace WeGouSharp
             //codeurl = 'http://weixin.sogou.com/antispider/util/seccode.php?tc=' + str(time.time())[0:10]
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
-            var content = netHelper.Get(headers,codeurl );
+            var content = netHelper.Get(headers, codeurl);
 
             //异步显示验证码
             ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
@@ -431,7 +421,7 @@ namespace WeGouSharp
 
             if (isOCR)
             {
-
+                //todo
             }
             else
             {
@@ -478,7 +468,7 @@ namespace WeGouSharp
         /// </summary>
         /// <returns></returns>
         /// <comment>原_jiefeng()</comment>
-        public bool UnblockFrequencyLimit(string balckUrl ,bool isOCR)
+        public bool UnblockFrequencyLimit(string balckUrl, bool isOCR)
         {
             logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
@@ -493,7 +483,7 @@ namespace WeGouSharp
             Console.WriteLine("请输入验证码：");
             string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
-           string postData = "{" + string.Format(@"'c':'{0}','r':'{1}','v': 5", verifyCode, balckUrl) +"}";//{'c': '{0}', 'r': '{1}', 'v': 5 }
+            string postData = "{" + string.Format(@"'c':'{0}','r':'{1}','v': 5", verifyCode, balckUrl) + "}";//{'c': '{0}', 'r': '{1}', 'v': 5 }
             Random r = new Random();
             int index = r.Next(WechatSogouBasic._agent.Count - 1);
             headers.Add("User-Agent", WechatSogouBasic._agent[index]);
@@ -524,15 +514,15 @@ namespace WeGouSharp
         /// 页面出现验证码，输入才能继续,此验证依赖cookie, 获取验证码的requset有个cookie，每次不同，需要在post验证码的时候带上
         /// </summary>
         /// <returns></returns>
-        public bool VerifyCodeForContinute(string url ,bool isUseOCR)
+        public bool VerifyCodeForContinute(string url, bool isUseOCR)
         {
             bool isSuccess = false;
             logger.Debug("vcode appear, use VerifyCodeForContinute()");
-            DateTime Epoch = new DateTime(1970, 1, 1,0,0,0,0);
+            DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             var timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
             string codeurl = "https://mp.weixin.qq.com/mp/verifycode?cert=" + timeStamp17;
             WebHeaderCollection headers = new WebHeaderCollection();
-            var content = this.Get(headers, codeurl,"UTF-8",true);
+            var content = this.Get(headers, codeurl, "UTF-8", true);
             ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
             showImageHandle.BeginInvoke(content, null, null);
             Console.WriteLine("请输入验证码：");
@@ -540,10 +530,10 @@ namespace WeGouSharp
             string postURL = "https://mp.weixin.qq.com/mp/verifycode";
 
             timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
-            string postData = string.Format("cert={0}&input={1}",timeStamp17,verifyCode );// "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode) + "}";
+            string postData = string.Format("cert={0}&input={1}", timeStamp17, verifyCode);// "{" + string.Format(@"'cert':'{0}','input':'{1}'", timeStamp17, verifyCode) + "}";
             headers.Add("Host", "mp.weixin.qq.com");
             headers.Add("Referer", url);
-            string remsg = this.Post(postURL, headers, postData,true);
+            string remsg = this.Post(postURL, headers, postData, true);
 
             try
             {
@@ -562,7 +552,8 @@ namespace WeGouSharp
                     vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                     throw vcodeException;
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 logger.Error(e);
             }
@@ -572,7 +563,6 @@ namespace WeGouSharp
         }
 
     }
-
 
 
 }

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace WeGouSharp
+namespace WeGouSharpPlus
 {
     class FileCache
     {
@@ -39,7 +37,7 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-       public T Get<T>(string key) where T : new()
+        public T Get<T>(string key) where T : new()
         {
             //获取键值key的缓存值
             //如果没有对应缓存，返回None
@@ -255,7 +253,7 @@ namespace WeGouSharp
             return fullFileName;
         }
 
-        
+
 
 
         public T _Get<T>(string key) where T : new()
@@ -271,7 +269,7 @@ namespace WeGouSharp
             if (!File.Exists(fileName))
             {
                 timeout = this._NormalizeTimeout(timeout);
-                 fileName = this._GetFileName(key);
+                fileName = this._GetFileName(key);
                 _SerializeToBin(value, fileName);
                 return true;
             }
@@ -292,7 +290,7 @@ namespace WeGouSharp
             string fileName = this._GetFileName(key);
             if (!File.Exists(fileName))
             {
-                return false ;
+                return false;
             }
             else //已存在
             {
@@ -326,7 +324,7 @@ namespace WeGouSharp
             {
                 File.Delete(fileName);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.Warn(e);
             }
@@ -339,7 +337,7 @@ namespace WeGouSharp
         {
             bool isExist = false;
             string filename = this._GetFileName(key);
-           if(File.Exists(filename))
+            if (File.Exists(filename))
             {
                 FileInfo fi = new FileInfo(filename);
                 if (fi.Length > 0)
@@ -364,7 +362,7 @@ namespace WeGouSharp
             System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             using (FileStream fs = new FileStream(cacheFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                bf.Serialize(fs, obj); 
+                bf.Serialize(fs, obj);
             }
 
             var result = Path.ChangeExtension(cacheFileName, _fs_transaction_suffix);
@@ -396,11 +394,10 @@ namespace WeGouSharp
                 return default(T); //返回null;
                 //throw new FileNotFoundException(string.Format("file {0} does not exist", cacheFileName));
             }
-                
+
         }
 
 
 
     }
-
 }
