@@ -523,9 +523,10 @@ namespace WeGouSharpPlus
             string codeurl = "https://mp.weixin.qq.com/mp/verifycode?cert=" + timeStamp17;
             WebHeaderCollection headers = new WebHeaderCollection();
             var content = this.Get(headers, codeurl, "UTF-8", true);
-            ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
-            showImageHandle.BeginInvoke(content, null, null);
-            Console.WriteLine("请输入验证码：");
+            // ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
+            // showImageHandle.BeginInvoke(content, null, null);
+            DisplayImageFromBase64Async(content);
+            Console.WriteLine("\n请输入验证码：");
             string verifyCode = Console.ReadLine();
             string postURL = "https://mp.weixin.qq.com/mp/verifycode";
 

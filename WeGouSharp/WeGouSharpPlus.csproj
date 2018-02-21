@@ -10,7 +10,10 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.6.11" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1-beta3" />
-    <PackageReference Include="OpenCvSharp3-WithoutDll" Version="3.3.1.20171117" />
+    <PackageReference Include="OpenCvSharp3-AnyCPU" Version="3.3.1.20171117" />
+    <!--
+        <PackageReference Include="OpenCvSharp3-WithoutDll" Version="3.3.1.20171117" /> 
+    -->
   </ItemGroup>
 
 <!--
@@ -20,7 +23,7 @@
     </Reference>
   </ItemGroup>
  -->
- 
+
   <ItemGroup>
     <None Update="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
