@@ -6,27 +6,32 @@
 蓝本为[Chyroc/WechatSogou](https://github.com/Chyroc/WechatSogou)，
 在此还请各位大佬指教
 
+**\*已经更新至dotnet core，可在linux或Mac下运行\* **
 
 ## 安装/引用
 默认编译类型为控制台应用
 也可修改为动态链接库（dll）然后在程序之间添加引用接口
 
-## 依赖
-- HtmlAgilityPack.dll //用于解析HTML
-- log4net.dll //日志
-- Emgu.CV.dll //验证码显示以及自动识别
-- Emgu.Util.dll
-- Newtonsoft.Json.dll //序列号
+## 添加依赖
+- HtmlAgilityPack //用于解析HTML
+- log4net //日志
+- CoreCompat.System.Drawing
+- OpenCvSharp3-AnyCPU //验证码显示以及自动识别
+- Newtonsoft.Json //序列化
 
 以上引用可通过NuGet添加
 如(visual studio-->tools-->Nuget Package Manager-->Package Manager Console)：
 ```
 Install-Package HtmlAgilityPack
 ```
-也可以直接在项目packages文件夹获取
+~~也可以直接在项目packages文件夹获取~~
 
 
 ## 使用
+```
+dotnet run
+```
+
 
 ### 初始化 API
 在test中直接调用
