@@ -14,12 +14,12 @@ namespace WeGouSharpPlus
     }
 
 
-    class WechatSogouBasic
+    public class WechatSogouBasic
     {
         ILog logger = LogManager.GetLogger(typeof(Program));
 
 
-        string _vcode_url;
+        string _vcode_url = "";
 
         WechatCache weChatCache;
         public static List<string> _agent = new List<string>
@@ -66,7 +66,7 @@ namespace WeGouSharpPlus
         /// <param name="name">搜索关键字</param>
         /// <param name="page">搜索的页数</param>
         /// <returns>返回的html string</returns>
-        protected string _SearchAccount_Html(string name, int page = 1)
+        protected string _SearchAccount_Html(string name, int page = 1, int tryTime = 1)
         {
             string text = "";
             WebHeaderCollection headers = new WebHeaderCollection();
@@ -75,8 +75,7 @@ namespace WeGouSharpPlus
 
             try
             {
-
-                text = netHelper.Get(headers, requestUrl, "utf-8");
+                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8", true);
             }
             catch (WechatSogouVcodeException e)
             {
