@@ -3,6 +3,7 @@ using log4net;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -92,10 +93,8 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public OfficialAccount GetAccountInfoById(string wechatid)
         {
-            //"""
-            OfficialAccount info = this.SearchOfficialAccount(wechatid, 1)[0]; //可能为空
+            OfficialAccount info = this.SearchOfficialAccount(wechatid, 1).FirstOrDefault(); //可能为空
             return info;
-            // return info[0] if info else False
         }
 
 
@@ -125,8 +124,6 @@ namespace WeGouSharpPlus
                     string brief;
                     string time;
                     OfficialAccount account = new OfficialAccount();
-                    string spans;
-
 
 
                     if (!string.IsNullOrEmpty(url))
@@ -220,10 +217,6 @@ namespace WeGouSharpPlus
                     logger.Error(e);
                 }
             }
-
-
-
-
 
             return articleList;
         }

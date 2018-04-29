@@ -3,7 +3,7 @@
     /// <summary>
     /// 公众号
     /// </summary>
-    class OfficialAccount
+   public class OfficialAccount
     {
         public string AccountPageurl { get; set; }
 

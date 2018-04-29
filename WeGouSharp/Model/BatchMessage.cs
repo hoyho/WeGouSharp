@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WeGouSharpPlus.Model
 {
-    class BatchMessage
+   public class BatchMessage
     {
         public int Meaasgeid { get; set; }
 

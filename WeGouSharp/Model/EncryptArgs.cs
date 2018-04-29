@@ -7,7 +7,7 @@ namespace WeGouSharpPlus.Model
     /// <summary>
     ///加入到链接中的一些参数
     /// </summary>
-    class EncryptArgs 
+   public class EncryptArgs 
     {
         public string biz { get; set; }
 
