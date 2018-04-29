@@ -6,7 +6,7 @@
 蓝本为[Chyroc/WechatSogou](https://github.com/Chyroc/WechatSogou)，
 在此还请各位大佬指教
 
-**\*已经更新至dotnet core，可在linux或Mac下运行\* **
+*** 已经更新至dotnet core，可在linux或Mac下运行 ***
 
 ## 安装/引用
 默认编译类型为控制台应用
