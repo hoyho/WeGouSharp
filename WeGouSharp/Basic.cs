@@ -73,23 +73,26 @@ namespace WeGouSharpPlus
             HttpHelper netHelper = new HttpHelper();
             string requestUrl = string.Format("http://weixin.sogou.com/weixin?query={0}&_sug_type_=&_sug_=n&type=1&page={1}&ie=utf8", name, page);
 
-            try
+                        try
             {
-                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8", true);
-            }          
-            catch (WechatSogouVcodeException e)
+                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8",true);
+            }
+            catch (WechatSogouVcodeException vCodeEx)
             {
-                if (e.Message == "weixin.sogou.com verification code")
-                {
-                    //this._jieFeng();
-                    netHelper.UnLock(false);
-                    //RequestSetting  requestSetting = new RequestSetting () { host = "", referer = "http://weixin.sogou.com/antispider/?from=%2f" + this._vcode_url.Replace("http://", "") };
+               var unlockCode = netHelper.UnLock(false);
 
-                    headers.Add("host", "");
-                    headers.Add("refer", "http://weixin.sogou.com/antispider/?from=%2f" + this._vcode_url.Replace("http://", ""));
-                    text = netHelper.Get(headers, requestUrl);
-                }
+                //continute request after post vcode notice ref and request url
+                var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com/", "");
+                // AFTER VCODE  ,send request with unlock code by cookie          
+                refParam = "http://weixin.sogou.com/antispider/?" + System.Web.HttpUtility.UrlEncode(refParam);
 
+                headers.Add("referer", refParam);
+                tryTime++;
+                text = tryTime > 5 ? "" : netHelper.VcodeJump(headers, requestUrl, "", true,unlockCode);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.logger.Error(ex);
             }
 
             return text;

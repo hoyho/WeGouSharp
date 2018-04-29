@@ -13,17 +13,26 @@ namespace WeGouSharpPlus
 
 
 
+ //遇到搜狗的验证码
     class WechatSogouVcodeException : WechatSogouException
     {
+        public WechatSogouVcodeException(string remark)
+        {
+            this.MoreInfo = remark;
+        }
 
         public string MoreInfo
         {
             get;
             set;
         }
+        public string VisittingUrl
+        {
+            get;
+            set;
+        }
         ///基于搜狗搜索的的微信公众号爬虫接口 出现验证码 异常类
     }
-
 
 
 

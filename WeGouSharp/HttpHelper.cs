@@ -7,6 +7,8 @@ using System.Net;
 using System.Text;
 using System.Drawing;
 using static WeGouSharpPlus.Tools;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace WeGouSharpPlus
 {
@@ -171,6 +173,109 @@ namespace WeGouSharpPlus
         }
 
 
+//验证通过，尝试跳转，弱失败则忽略，不抛异常
+        public string VcodeJump(WebHeaderCollection headers, string url, string responseEncoding = "UTF-8", bool isUseCookie = false,string SNUID="")
+        {
+
+            string responseText = "";
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+
+
+            request.Method = "GET";
+            //request.Headers = headers;
+            foreach (string key in headers.Keys)
+            {
+                switch (key.ToLower())
+                {
+                    case "user-agent": //todo keep same with previous one
+                        request.UserAgent = headers[key];
+                        break;
+                    case "referer":
+                        request.Referer = headers[key];
+                        break;
+                    case "host":
+                        request.Host = headers[key];
+                        break;
+                    case "contenttype":
+                        request.ContentType = headers[key];
+                        break;
+                    case "accept":
+                        request.Accept = headers[key];
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+
+            if (string.IsNullOrEmpty(request.Referer))
+            {
+                request.Referer = "http://weixin.sogou.com/";
+            };
+            if (string.IsNullOrEmpty(request.Host))
+            {
+                request.Host = "weixin.sogou.com";
+            };
+            if (string.IsNullOrEmpty(request.UserAgent))
+            {
+                request.UserAgent = WechatSogouBasic._agent.FirstOrDefault();
+            }
+            if (isUseCookie)
+            {
+                CookieCollection cc = Tools.LoadCookieFromCache();
+                 cc.Add(new Cookie("SNUID",""){Domain = "sogou.com",Expires= DateTime.Now.AddHours(-1),Path="/"}); //delete old cookie
+                // cc.Add(new Cookie("SNUID",SNUID){Domain = "weixin.sogou.com",Expires= DateTime.Now.AddHours(-1)});
+
+                var snuidCookie = new Cookie("SNUID",SNUID){Domain = ".sogou.com",Path="/",Expires = DateTime.Now.AddHours(1)}; //DELETE OLD
+                cc.Add(snuidCookie);
+                request.CookieContainer = new CookieContainer();
+                request.CookieContainer.Add(cc);
+            }
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            if (isUseCookie && response.Cookies.Count > 0)
+            {
+                var cookieCollection = response.Cookies;
+                WechatCache cache = new WechatCache(Config.CacheDir, 3000);
+                if (!cache.Add("cookieCollection", cookieCollection, 3000)) { cache.Update("cookieCollection", cookieCollection, 3000); };
+            }
+            // Get the stream containing content returned by the server.
+            Stream dataStream = response.GetResponseStream();
+
+
+            // Open the stream using a StreamReader for easy access.
+            Encoding encoding;
+            switch (responseEncoding.ToLower())
+            {
+                case "utf-8":
+                    encoding = Encoding.UTF8;
+                    break;
+                case "unicode":
+                    encoding = Encoding.Unicode;
+                    break;
+                case "ascii":
+                    encoding = Encoding.ASCII;
+                    break;
+                default:
+                    encoding = Encoding.Default;
+                    break;
+
+            }
+            using (var reader = new StreamReader(dataStream, encoding))
+            {
+                responseText = reader.ReadToEnd();// Read the content.
+            }
+
+
+            // Cleanup the streams and the response.
+            dataStream.Close();
+            response.Close();
+
+
+            return responseText;
+        }
 
 
         /// <summary>
@@ -403,58 +508,64 @@ namespace WeGouSharpPlus
 
 
         /// <summary>
-        /// 对于出现验证码，识别验证码，输入验证码解封
+        /// 对于(搜狗搜索框搜索关键字)出现验证码，识别验证码，输入验证码解封 返回解封码，用于下次请求的cookie中
         /// </summary>
         /// <returns></returns>
-        public bool UnLock(bool isOCR)
+        public string  UnLock(bool isOCR)
         {
             logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
             //codeurl = 'http://weixin.sogou.com/antispider/util/seccode.php?tc=' + str(time.time())[0:10]
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
-            var content = netHelper.Get(headers, codeurl);
-
-            //异步显示验证码
-            ShowImageHandle showImageHandle = new ShowImageHandle(DisplayImageFromBase64);
-            showImageHandle.BeginInvoke(content, null, null);
+            var content = netHelper.Get(headers, codeurl, "", true);
 
             if (isOCR)
             {
                 //todo
             }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WriteLine("请输入验证码：   ");
+                DisplayImageFromBase64Async(content).Wait();
+            }
             else
             {
-
+                Console.WriteLine(@"your system is not support show image in console app /n
+                 please open captcha from ./captcha/vcode");
+                Tools.SaveImage(content, "vcode.jpg");
+                Console.WriteLine("请输入验证码：");
             }
 
 
 
-            Console.WriteLine("请输入验证码：");
             string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
-            string postData = string.Format("{'c': {0}, 'r': {1}, 'v': 5 }", verifyCode, this._vcode_url);
+            var refParam = _vcode_url.Replace("http://weixin.sogou.com", "");
+            refParam = System.Web.HttpUtility.UrlEncode(refParam);
+            string postData = $"c={verifyCode}&r={refParam}&v=5";
+            // verifyCode, this._vcode_url);
+
             Random r = new Random();
             int index = r.Next(WechatSogouBasic._agent.Count - 1);
             headers.Add("User-Agent", WechatSogouBasic._agent[index]);
             headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + this._vcode_url.Replace("http://", ""));
             headers.Add("Host", "weixin.sogou.com");
-            string remsg = netHelper.PostJson(postURL, headers, postData);
+            string remsg = netHelper.Post(postURL, headers, postData, true);
             JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  
-            int satuscode = (int)jo.GetValue("code");
+            int statusCode = (int)jo.GetValue("code");
+          string unlockCode = (string)jo.GetValue("id");
 
-            if (satuscode < 0)
+            if (statusCode != 0)
             {
                 logger.Error("cannot unblock because " + jo.GetValue("msg"));
-                var vcodeException = new WechatSogouVcodeException();
+                var vcodeException = new WechatSogouVcodeException("can not unblock");
                 vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                 throw vcodeException;
             }
             else
             {
-                //this._cache.set(Config.CacheDir, "", 500);
-                Console.WriteLine("ocr");
-                return true;
+                return unlockCode;
             }
 
 
@@ -496,7 +607,7 @@ namespace WeGouSharpPlus
             if (satuscode < 0)
             {
                 logger.Error("cannot unblock because " + jo.GetValue("msg"));
-                var vcodeException = new WechatSogouVcodeException();
+                var vcodeException = new WechatSogouVcodeException("cannot unlock");
                 vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                 throw vcodeException;
             }
@@ -549,7 +660,7 @@ namespace WeGouSharpPlus
                 else
                 {
                     logger.Error("cannot unblock because " + jo.GetValue("msg"));
-                    var vcodeException = new WechatSogouVcodeException();
+                    var vcodeException = new WechatSogouVcodeException("can not unlock");
                     vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                     throw vcodeException;
                 }
