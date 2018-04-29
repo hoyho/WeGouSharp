@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace WeGouSharpPlus
 {
-    class Program
+   public class Program
     {
         static void Main(string[] args)
         {

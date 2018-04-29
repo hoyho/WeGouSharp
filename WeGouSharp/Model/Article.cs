@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WeGouSharpPlus.Model
 {
-    class Article
+   public class Article
     {
         public string Url { get; set; }
 

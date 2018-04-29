@@ -17,7 +17,7 @@ namespace WeGouSharpPlus
     }
 
 
-    class WechatSogouAPI : WechatSogouBasic
+ public class WechatSogouAPI : WechatSogouBasic
     {
 
         ILog logger = LogManager.GetLogger(typeof(Program));

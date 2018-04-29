@@ -7,7 +7,7 @@ namespace WeGouSharpPlus.Model
     /// <summary>
     /// 首页搜索热词
     /// </summary>
-    class HotWord
+    public class HotWord
     {
         /// <summary>
         /// 排行
