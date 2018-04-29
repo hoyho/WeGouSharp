@@ -76,7 +76,7 @@ namespace WeGouSharpPlus
             try
             {
                 text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8", true);
-            }
+            }          
             catch (WechatSogouVcodeException e)
             {
                 if (e.Message == "weixin.sogou.com verification code")
