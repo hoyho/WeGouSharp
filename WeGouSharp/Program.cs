@@ -2,6 +2,7 @@
 using log4net.Config;
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace WeGouSharpPlus
 {
@@ -11,14 +12,24 @@ namespace WeGouSharpPlus
         {
             Console.WriteLine("Hello World! dotnet core");
             //加载log4net配置
-            FileInfo configFile = new FileInfo(AppDomain.CurrentDomain.BaseDirectory + "log4net.config");
-            //tofix
-            //XmlConfigurator.ConfigureAndWatch(new log4net.Repository.ILoggerRepository(),configFile);
-            //创建logger
-            var logger = LogManager.GetLogger(typeof(Program));
-
+            LoadLoggerConfig();
+            LogHelper.logger.Debug("Hello WeGouSharp");
             //调用示例
             Test.run();
         }
+
+        //初始化log4net配置
+        public static void LoadLoggerConfig()
+        {
+            //init logger
+            FileInfo configFile = new FileInfo(AppDomain.CurrentDomain.BaseDirectory + "log4net.config");
+            var repo = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.ConfigureAndWatch(repo, configFile);
+            // //创建logger
+            var logger = LogManager.GetLogger(typeof(Program));
+            logger.Error("logger inited");
+        }
+
+
     }
 }
