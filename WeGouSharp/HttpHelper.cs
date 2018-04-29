@@ -31,150 +31,146 @@ namespace WeGouSharpPlus
         {
 
             string responseText = "";
-            try
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+
+            request.Method = "GET";
+            //request.Headers = headers;
+            foreach (string key in headers.Keys)
             {
-                var request = (HttpWebRequest)WebRequest.Create(url);
-
-
-                request.Method = "GET";
-                //request.Headers = headers;
-                foreach (string key in headers.Keys)
+                switch (key.ToLower())
                 {
-                    switch (key.ToLower())
-                    {
-                        case "user-agent":
-                            request.UserAgent = headers[key];
-                            break;
-                        case "referer":
-                            request.Referer = headers[key];
-                            break;
-                        case "host":
-                            request.Host = headers[key];
-                            break;
-                        case "contenttype":
-                            request.ContentType = headers[key];
-                            break;
-                        case "accept":
-                            request.Accept = headers[key];
-                            break;
-                        default:
-                            break;
-                    }
-
+                    case "user-agent":
+                        request.UserAgent = headers[key];
+                        break;
+                    case "referer":
+                        request.Referer = headers[key];
+                        break;
+                    case "host":
+                        request.Host = headers[key];
+                        break;
+                    case "contenttype":
+                        request.ContentType = headers[key];
+                        break;
+                    case "accept":
+                        request.Accept = headers[key];
+                        break;
+                    default:
+                        break;
                 }
-
-                if (string.IsNullOrEmpty(request.Referer))
-                {
-                    request.Referer = "http://weixin.sogou.com/";
-                };
-                if (string.IsNullOrEmpty(request.Host))
-                {
-                    request.Host = "weixin.sogou.com";
-                };
-                if (string.IsNullOrEmpty(request.UserAgent))
-                {
-                    Random r = new Random();
-                    int index = r.Next(WechatSogouBasic._agent.Count - 1);
-                    request.UserAgent = WechatSogouBasic._agent[index];
-                }
-                if (isUseCookie)
-                {
-                    CookieCollection cc = Tools.LoadCookieFromCache();
-                    request.CookieContainer = new CookieContainer();
-                    request.CookieContainer.Add(cc);
-                }
-
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                if (isUseCookie && response.Cookies.Count > 0)
-                {
-                    var cookieCollection = response.Cookies;
-                    WechatCache cache = new WechatCache(Config.CacheDir, 3000);
-                    if (!cache.Add("cookieCollection", cookieCollection, 3000)) { cache.Update("cookieCollection", cookieCollection, 3000); };
-                }
-                // Get the stream containing content returned by the server.
-                Stream dataStream = response.GetResponseStream();
-
-
-
-
-                //如果response是图片，则返回以base64方式返回图片内容，否则返回html内容
-                if (response.Headers.Get("Content-Type") == "image/jpeg" || response.Headers.Get("Content-Type") == "image/jpg")
-                {
-                 
-                    //totest
-                    Image img = Image.FromStream(dataStream, true);
-
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-
-                        img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                        byte[] imageBytes = ms.ToArray();
-                        string base64String = Convert.ToBase64String(imageBytes);
-                        responseText = base64String;
-                    }
-
-                }
-                else //read response string
-                {
-
-                    // Open the stream using a StreamReader for easy access.
-                    Encoding encoding;
-                    switch (responseEncoding.ToLower())
-                    {
-                        case "utf-8":
-                            encoding = Encoding.UTF8;
-                            break;
-                        case "unicode":
-                            encoding = Encoding.Unicode;
-                            break;
-                        case "ascii":
-                            encoding = Encoding.ASCII;
-                            break;
-                        default:
-                            encoding = Encoding.Default;
-                            break;
-
-                    }
-                    StreamReader reader = new StreamReader(dataStream, encoding);//System.Text.Encoding.Default
-                    // Read the content.
-
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        responseText = reader.ReadToEnd();
-                        if (responseText.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
-                        {
-                            _vcode_url = url;
-                            throw new Exception("weixin.sogou.com verification code");
-                        }
-                    }
-                    else
-                    {
-                        logger.Error("requests status_code error" + response.StatusCode);
-                        throw new Exception("requests status_code error");
-                    }
-                    reader.Close();
-
-                }
-
-
-                // Cleanup the streams and the response.
-                dataStream.Close();
-                response.Close();
-
 
             }
-            catch (Exception e)
+
+            if (string.IsNullOrEmpty(request.Referer))
             {
-                logger.Error(e);
+                request.Referer = "http://weixin.sogou.com/";
+            };
+            if (string.IsNullOrEmpty(request.Host))
+            {
+                request.Host = "weixin.sogou.com";
+            };
+            if (string.IsNullOrEmpty(request.UserAgent))
+            {
+                Random r = new Random();
+                int index = r.Next(WechatSogouBasic._agent.Count - 1);
+                request.UserAgent = WechatSogouBasic._agent.FirstOrDefault();
             }
+            if (isUseCookie)
+            {
+                CookieCollection cc = Tools.LoadCookieFromCache();
+                request.CookieContainer = new CookieContainer();
+                request.CookieContainer.Add(cc);
+
+            }
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            if (isUseCookie && response.Cookies.Count > 0)
+            {
+                var cookieCollection = response.Cookies;
+                WechatCache cache = new WechatCache(Config.CacheDir, 3000);
+                if (!cache.Add("cookieCollection", cookieCollection, 3000)) { cache.Update("cookieCollection", cookieCollection, 3000); };
+            }
+            // Get the stream containing content returned by the server.
+            Stream dataStream = response.GetResponseStream();
+
+
+
+
+            //如果response是图片，则返回以base64方式返回图片内容，否则返回html内容
+            if (response.Headers.Get("Content-Type") == "image/jpeg" || response.Headers.Get("Content-Type") == "image/jpg")
+            {
+
+                //totest
+                Image img = Image.FromStream(dataStream, true);
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+
+                    img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    byte[] imageBytes = ms.ToArray();
+                    string base64String = Convert.ToBase64String(imageBytes);
+                    responseText = base64String;
+                }
+
+            }
+            else //read response string
+            {
+
+                // Open the stream using a StreamReader for easy access.
+                Encoding encoding;
+                switch (responseEncoding.ToLower())
+                {
+                    case "utf-8":
+                        encoding = Encoding.UTF8;
+                        break;
+                    case "unicode":
+                        encoding = Encoding.Unicode;
+                        break;
+                    case "ascii":
+                        encoding = Encoding.ASCII;
+                        break;
+                    default:
+                        encoding = Encoding.Default;
+                        break;
+
+                }
+                StreamReader reader = new StreamReader(dataStream, encoding);//System.Text.Encoding.Default
+                                                                             // Read the content.
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    responseText = reader.ReadToEnd();
+                    if (responseText.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
+                    {
+
+                        _vcode_url = url;
+                        throw new WechatSogouVcodeException("vcode") { VisittingUrl = url };
+                        //throw new Exception("weixin.sogou.com verification code");
+                    }
+                }
+                else
+                {
+                    logger.Error("requests status_code error" + response.StatusCode);
+                    throw new Exception("requests status_code error");
+                }
+                reader.Close();
+
+            }
+
+
+            // Cleanup the streams and the response.
+            dataStream.Close();
+            response.Close();
+
 
             return responseText;
+
         }
 
 
-//验证通过，尝试跳转，弱失败则忽略，不抛异常
-        public string VcodeJump(WebHeaderCollection headers, string url, string responseEncoding = "UTF-8", bool isUseCookie = false,string SNUID="")
+        //验证通过，尝试跳转，弱失败则忽略，不抛异常
+        public string VcodeJump(WebHeaderCollection headers, string url, string responseEncoding = "UTF-8", bool isUseCookie = false, string SNUID = "")
         {
 
             string responseText = "";
@@ -224,10 +220,10 @@ namespace WeGouSharpPlus
             if (isUseCookie)
             {
                 CookieCollection cc = Tools.LoadCookieFromCache();
-                 cc.Add(new Cookie("SNUID",""){Domain = "sogou.com",Expires= DateTime.Now.AddHours(-1),Path="/"}); //delete old cookie
+                cc.Add(new Cookie("SNUID", "") { Domain = "sogou.com", Expires = DateTime.Now.AddHours(-1), Path = "/" }); //delete old cookie
                 // cc.Add(new Cookie("SNUID",SNUID){Domain = "weixin.sogou.com",Expires= DateTime.Now.AddHours(-1)});
 
-                var snuidCookie = new Cookie("SNUID",SNUID){Domain = ".sogou.com",Path="/",Expires = DateTime.Now.AddHours(1)}; //DELETE OLD
+                var snuidCookie = new Cookie("SNUID", SNUID) { Domain = ".sogou.com", Path = "/", Expires = DateTime.Now.AddHours(1) }; //DELETE OLD
                 cc.Add(snuidCookie);
                 request.CookieContainer = new CookieContainer();
                 request.CookieContainer.Add(cc);
@@ -511,7 +507,7 @@ namespace WeGouSharpPlus
         /// 对于(搜狗搜索框搜索关键字)出现验证码，识别验证码，输入验证码解封 返回解封码，用于下次请求的cookie中
         /// </summary>
         /// <returns></returns>
-        public string  UnLock(bool isOCR)
+        public string UnLock(bool isOCR)
         {
             logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
@@ -554,7 +550,7 @@ namespace WeGouSharpPlus
             string remsg = netHelper.Post(postURL, headers, postData, true);
             JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  
             int statusCode = (int)jo.GetValue("code");
-          string unlockCode = (string)jo.GetValue("id");
+            string unlockCode = (string)jo.GetValue("id");
 
             if (statusCode != 0)
             {

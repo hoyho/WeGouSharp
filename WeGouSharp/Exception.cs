@@ -34,7 +34,11 @@ namespace WeGouSharpPlus
         ///基于搜狗搜索的的微信公众号爬虫接口 出现验证码 异常类
     }
 
+    ///验证码不通过
+    class WechatSogouVcodeFileException : WechatSogouException
+    {
 
+    }
 
     class WechatSogouVcodeOcrException : WechatSogouException
     {
