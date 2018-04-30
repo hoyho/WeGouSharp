@@ -5,22 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using WeGouSharpPlus.Model;
 
 namespace WeGouSharpPlus
 {
-    class API
+    public class WechatSogouAPI : WechatSogouBasic
     {
-        ILog logger = LogManager.GetLogger(typeof(Program));
-    }
-
-
- public class WechatSogouAPI : WechatSogouBasic
-    {
-
-        ILog logger = LogManager.GetLogger(typeof(Program));
+        readonly ILog _logger = LogManager.GetLogger(typeof(Program));
 
         /// <summary>
         /// 搜索公众号
@@ -30,57 +22,46 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public List<OfficialAccount> SearchOfficialAccount(string keyword, int page = 1)
         {
-            List<OfficialAccount> accountList = new List<OfficialAccount>();
+            var accountList = new List<OfficialAccount>();
 
-            string text = this._SearchAccount_Html(keyword, page);
-            HtmlDocument pageDoc = new HtmlDocument();
+            var text = this._SearchAccount_Html(keyword, page);
+            var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
-            HtmlNodeCollection targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list2']/li");
-            if (targetArea != null)
+            var targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list2']/li");
+            if (targetArea == null) return null;
+            foreach (var node in targetArea)
             {
-                foreach (HtmlNode node in targetArea)
+                var accountInfo = new OfficialAccount();
+                try
                 {
-                    try
-                    {
-                        OfficialAccount accountInfo = new OfficialAccount();
-
-                        //链接中包含了&amp; html编码符，要用htmdecode，不是urldecode
-                        accountInfo.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a").GetAttributeValue("href", ""));
-                        //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
-                        accountInfo.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
-                        accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
-                        accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
-                        accountInfo.QrCode = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img").GetAttributeValue("src", ""));
-                        accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
-                        //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
-                        //现在改为包含该script的即认证了
-                        if (node.InnerText.Contains("document.write(authname('2'))"))
-                        {
-                            accountInfo.IsAuth = true;
-                        }
-                        else
-                        {
-                            accountInfo.IsAuth = false;
-                        }
-                        accountList.Add(accountInfo);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.Warn(e);
-                    }
-
-
+                    //链接中包含了&amp; html编码符，要用htmdecode，不是urldecode
+                    accountInfo.AccountPageurl =
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a")
+                            .GetAttributeValue("href", ""));
+                    //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
+                    accountInfo.ProfilePicture = WebUtility.HtmlDecode(node
+                        .SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
+                    accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim()
+                        .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
+                    accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
+                    accountInfo.QrCode =
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img")
+                            .GetAttributeValue("src", ""));
+                    accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim()
+                        .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
+                    //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
+                    //现在改为包含该script的即认证了
+                    accountInfo.IsAuth = node.InnerText.Contains("document.write(authname('2'))");
+                    accountList.Add(accountInfo);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(e);
                 }
             }
 
-
-
             return accountList;
-
         }
-
-
-
 
 
         /// <summary>
@@ -93,32 +74,31 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public OfficialAccount GetAccountInfoById(string wechatid)
         {
-            OfficialAccount info = this.SearchOfficialAccount(wechatid, 1).FirstOrDefault(); //可能为空
+            var info = this.SearchOfficialAccount(wechatid, 1).FirstOrDefault(); //可能为空
             return info;
         }
-
-
 
 
         /// <summary>
         /// 搜索微信文章
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="keyword"></param>
         /// <param name="page"></param>
         /// <returns></returns>
         public List<Article> SearchArticle(string keyword, int page = 1)
         {
-            List<Article> articleList = new List<Article>();
+            var articleList = new List<Article>();
             string text = this._SearchArticle_Html(keyword, page);
-            HtmlDocument pageDoc = new HtmlDocument();
+            var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             //todo
-            HtmlNodeCollection targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list']/li");
-            foreach (HtmlNode node in targetArea)
+            var targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list']/li");
+            foreach (var node in targetArea)
             {
                 try
                 {
-                    string url = WebUtility.HtmlDecode(node.SelectSingleNode("div[2]/h3/a").GetAttributeValue("href", ""));
+                    string url =
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div[2]/h3/a").GetAttributeValue("href", ""));
                     string title;
                     List<string> imgs = new List<string>();
                     string brief;
@@ -129,20 +109,26 @@ namespace WeGouSharpPlus
                     if (!string.IsNullOrEmpty(url))
                     {
                         title = node.SelectSingleNode("div[2]/h3/a").InnerText;
-                        string img = WebUtility.HtmlDecode(node.SelectSingleNode("div[1]/a/img").GetAttributeValue("src", ""));
+                        string img =
+                            WebUtility.HtmlDecode(node.SelectSingleNode("div[1]/a/img").GetAttributeValue("src", ""));
                         imgs.Add(img);
                         brief = node.SelectSingleNode("div[2]/p").InnerHtml;
                         time = node.SelectSingleNode("div[2]/div/span/script/text()").InnerHtml;
                         if (node.SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a") != null)
                         {
-                            account.IsAuth = Convert.ToBoolean(Convert.ToInt16(node.SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a").GetAttributeValue("data-isv", "")));
+                            account.IsAuth = Convert.ToBoolean(Convert.ToInt16(node
+                                .SelectSingleNode("div[@class='txt-box']/div[@class='s-p']/a")
+                                .GetAttributeValue("data-isv", "")));
                         }
 
-                        account.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div[@class='txt-box']/h3/a").GetAttributeValue("href", ""));
+                        account.AccountPageurl = WebUtility.HtmlDecode(node
+                            .SelectSingleNode("div[@class='txt-box']/h3/a").GetAttributeValue("href", ""));
                         if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
-                            account.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("data-headimage", ""));
+                            account.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a")
+                                .GetAttributeValue("data-headimage", ""));
                         }
+
                         if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
                             account.Name = node.SelectSingleNode("div/div[2]/a").InnerText;
@@ -150,11 +136,10 @@ namespace WeGouSharpPlus
                     }
                     else
                     {
-
                         url = WebUtility.HtmlDecode(node.SelectSingleNode("div/h3/a").GetAttributeValue("href", ""));
                         title = node.SelectSingleNode("div/h3/a").InnerText;
-                        HtmlNodeCollection spansNodeCollection = node.SelectNodes("div/div[1]/a");
-                        foreach (HtmlNode span in spansNodeCollection)
+                        var spansNodeCollection = node.SelectNodes("div/div[1]/a");
+                        foreach (var span in spansNodeCollection)
                         {
                             string img = WebUtility.HtmlDecode(span.SelectSingleNode("span/img/@src").InnerText);
                             if (!string.IsNullOrEmpty(img))
@@ -162,65 +147,58 @@ namespace WeGouSharpPlus
                                 imgs.Add(img);
                             }
                         }
+
                         brief = node.SelectSingleNode("div/p").InnerText;
                         time = node.SelectSingleNode("div/div[2]/span/script/text()").InnerText;
                         if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
-                            account.IsAuth = Convert.ToBoolean(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("data-isv", ""));
+                            account.IsAuth = Convert.ToBoolean(node.SelectSingleNode("div/div[2]/a")
+                                .GetAttributeValue("data-isv", ""));
                         }
-                        account.AccountPageurl = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("href", ""));
-                        account.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("data-headimage", ""));
+
+                        account.AccountPageurl =
+                            WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a").GetAttributeValue("href", ""));
+                        account.ProfilePicture = WebUtility.HtmlDecode(node.SelectSingleNode("div/div[2]/a")
+                            .GetAttributeValue("data-headimage", ""));
                         if (node.SelectSingleNode("div/div[2]/a") != null)
                         {
                             account.Name = node.SelectSingleNode("div/div[2]/a").InnerText;
                         }
-
                     }
 
 
+                    title = string.IsNullOrEmpty(title)
+                        ? ""
+                        : title.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "")
+                            .Replace("<em>", "").Replace("</em>", "");
 
-                    if (!string.IsNullOrEmpty(title))
+                    brief = string.IsNullOrEmpty(brief)
+                        ? ""
+                        : brief.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "").Replace("<em>", "")
+                            .Replace("</em>", "");
+
+                    var timeRegex = new Regex(@"timeConvert\('(?(time)<1>(\d+))'\)");
+                    time = timeRegex.Match(time).Groups.FirstOrDefault()?.Value;
+
+                    var article = new Article
                     {
-                        title = title.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "").Replace("<em>", "").Replace("</em>", ""); ;
-                    }
-                    else
-                    {
-                        title = "";
-                    }
-
-                    if (!string.IsNullOrEmpty(brief))
-                    {
-                        brief = brief.Trim().Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "").Replace("<em>", "").Replace("</em>", "");
-
-                    }
-                    else
-                    {
-                        brief = "";
-                    }
-
-                    Regex TimeRegex = new Regex(@"timeConvert\('(?<1>(\d+))'\)");
-                    var m = TimeRegex.Match(time);
-                    time = TimeRegex.Match(time).Groups[1].Value;
-
-                    Article article = new Article();
-                    article.Title = title;
-                    article.Brief = brief;
-                    article.Url = url;
-                    article.Imgs = imgs;
-                    article.Time = time;
-                    article.officialAccount = account;
+                        Title = title,
+                        Brief = brief,
+                        Url = url,
+                        Imgs = imgs,
+                        Time = time,
+                        officialAccount = account
+                    };
                     articleList.Add(article);
-
                 }
                 catch (Exception e)
                 {
-                    logger.Error(e);
+                    _logger.Error(e);
                 }
             }
 
             return articleList;
         }
-
 
 
         /// <summary>
@@ -231,7 +209,8 @@ namespace WeGouSharpPlus
         /// <param name="wechatName">微信昵称(不推荐，因为不唯一)</param>
         /// <remarks> 最保险的做法是提供url或者wechatid</remarks>
         /// <returns> list of batchMessage 一定含有字段qunfa_id,datetime,type 当type不同时，含有不同的字段，具体见文档</returns>
-        public List<BatchMessage> GetOfficialAccountMessages(string accountPageUrl = "", string wechatId = "", string wechatName = "")
+        public List<BatchMessage> GetOfficialAccountMessages(string accountPageUrl = "", string wechatId = "",
+            string wechatName = "")
         {
             string htmlStr = "";
             if (!string.IsNullOrEmpty(accountPageUrl))
@@ -240,7 +219,6 @@ namespace WeGouSharpPlus
             }
             else if (!string.IsNullOrEmpty(wechatId))
             {
-
                 var account = this.GetAccountInfoById(wechatId);
                 accountPageUrl = account.AccountPageurl;
                 htmlStr = this._GetRecentArticle_Html(accountPageUrl);
@@ -252,12 +230,10 @@ namespace WeGouSharpPlus
                 htmlStr = this._GetRecentArticle_Html(accountPageUrl);
             }
 
-            EncryptArgs encry = new EncryptArgs();
-            string articleJsonString = this._ExtracJson(htmlStr);
+            var encry = new EncryptArgs();
+            var articleJsonString = this._ExtracJson(htmlStr);
             return this._ResolveBatchMessageFromJson(articleJsonString, encry);
-
         }
-
 
 
         /// <summary>
@@ -268,9 +244,9 @@ namespace WeGouSharpPlus
         /// <param name="wechatName"></param>
         /// <remarks>get_gzh_message_and_info</remarks>
         /// <returns>公众号相关信息及已发消息(json)</returns>
-        public string GetOfficialAccountInfoAndMessages(string accountPageUrl = "", string wechatId = "", string wechatName = "")
+        public string GetOfficialAccountInfoAndMessages(string accountPageUrl = "", string wechatId = "",
+            string wechatName = "")
         {
-
             string text = "";
             string url = "";
             if (!string.IsNullOrEmpty(accountPageUrl))
@@ -291,34 +267,30 @@ namespace WeGouSharpPlus
                 text = this._GetRecentArticle_Html(url);
             }
 
-            EncryptArgs encryp = new EncryptArgs();
+            var encryp = new EncryptArgs();
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject
-                (
+            (
                 new
                 {
                     OfficialAccount = this._ResolveOfficialAccount(text, url),
                     Message = _ResolveBatchMessageFromJson(this._ExtracJson(text), encryp)
                 }, Newtonsoft.Json.Formatting.Indented
-                );
+            );
             return json;
-
         }
-
-
 
 
         /// <summary>
         /// 从（临时）文章页抽取正文部分
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="text"></param>
+        /// <param name="articlePageHtml"></param>
         /// <remarks>deal_article_content</remarks>
         /// <returns></returns>
         public string ExtractArticleMain(string url, string articlePageHtml = "")
         {
-
-            if (!string.IsNullOrEmpty(articlePageHtml))
+            if (!string.IsNullOrEmpty(articlePageHtml)) //优先使用articlePageHtml
             {
                 //pass
             }
@@ -339,14 +311,14 @@ namespace WeGouSharpPlus
                 bodyContent = doc.DocumentNode.SelectSingleNode("//*[@id='js_content']").InnerHtml;
             }
             catch (Exception e)
-            { }
+            {
+                _logger.Error(e);
+            }
 
             bodyContent = "<div class=\"rich_media_content \" id=\"js_content\">" + bodyContent + "</div>";
 
             return bodyContent;
-
         }
-
 
 
         /// <summary>
@@ -360,22 +332,19 @@ namespace WeGouSharpPlus
         public string GetRelatedArticleJson(string url, string title)
         {
             return this._GetRelatedJson(url, title);
-
         }
-
 
 
         /// <summary>
         /// 请求文章相关评论（sogou此接口已经过期，待更新）
         /// </summary>
-        /// <param name="text">文章页html</param>
         /// <param name="url">文章链接</param>
+        /// <param name="articlePageHtml">文章页html</param>
         /// <remarks>deal_article_comment</remarks>
         /// <returns></returns>
         [Obsolete]
         public string RequireArticleComment(string url, string articlePageHtml = "")
         {
-
             if (string.IsNullOrEmpty(articlePageHtml))
             {
                 //
@@ -390,53 +359,53 @@ namespace WeGouSharpPlus
             }
 
 
-            Regex reg = new Regex("window.sg_data={(.*?)}");
-            Match match = reg.Match(articlePageHtml);
-            string sg_data = match.Groups[0].Value;
-            sg_data = "{" + sg_data.Replace("\r\n", "").Replace(" ", "") + "}";
+            var reg = new Regex("window.sg_data={(.*?)}");
+            var match = reg.Match(articlePageHtml??"");
+            string sgData = match.Groups[0].Value;
+            sgData = "{" + sgData.Replace("\r\n", "").Replace(" ", "") + "}";
 
             reg = new Regex("{src:\"(.*?)\",ver:\"(.*?)\",timestamp:\"(.*?)\",signature:\"(.*?)\"}");
-            var sgDataMatch = reg.Match(sg_data);
-            string commentReqUrl = "http://mp.weixin.qq.com/mp/getcomment?src=" + sgDataMatch.Groups[0].Value + "&ver=" + sgDataMatch.Groups[1].Value +
-                 "&timestamp=" + sgDataMatch.Groups[2] + "&signature=" + sgDataMatch.Groups[3].Value + "&uin=&key=&pass_ticket=&wxtoken=&devicetype=&clientversion=0&x5=0";
+            var sgDataMatch = reg.Match(sgData);
+            string commentReqUrl = "http://mp.weixin.qq.com/mp/getcomment?src=" + sgDataMatch.Groups[0].Value +
+                                   "&ver=" + sgDataMatch.Groups[1].Value +
+                                   "&timestamp=" + sgDataMatch.Groups[2] + "&signature=" + sgDataMatch.Groups[3].Value +
+                                   "&uin=&key=&pass_ticket=&wxtoken=&devicetype=&clientversion=0&x5=0";
 
-            WebHeaderCollection headers = new WebHeaderCollection();
+            var headers = new WebHeaderCollection();
             headers.Add("host", "mp.weixin.qq.com");
             headers.Add("referer", "http://mp.weixin.qq.com");
+            
             HttpHelper netHelper = new HttpHelper();
             string commentText = netHelper.Get(headers, commentReqUrl);
             JObject commentJson = new JObject();
             try
             {
                 commentJson = JObject.Parse(commentText);
-                int ret = (int)commentJson.SelectToken("base_resp.ret");
+                int ret = (int) commentJson.SelectToken("base_resp.ret");
                 string errorMsg = "";
                 if (commentJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errorMsg = (string)commentJson.SelectToken("base_resp.errmsg");
+                    errorMsg = (string) commentJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
                     errorMsg = "ret:" + ret;
                 }
+
                 if (ret != 0)
                 {
-                    logger.Error(errorMsg);
+                    _logger.Error(errorMsg);
                     throw new WechatSogouException();
                 }
-
             }
             catch (Exception e)
             {
-                logger.Error(e);
+                _logger.Error(e);
             }
 
 
             return commentJson.ToString();
-
         }
-
-
 
 
         /// <summary>
@@ -445,7 +414,6 @@ namespace WeGouSharpPlus
         /// <param name="url"></param>
         /// <param name="articlePageHtml"></param>
         /// <returns>"阅读原文(的链接)"</returns>
-
         [Obsolete]
         string RequireReadOriginal(string url, string articlePageHtml = "")
         {
@@ -473,54 +441,44 @@ namespace WeGouSharpPlus
             {
                 if (articlePageHtml.Contains("系统出错"))
                 {
-                    logger.Debug("系统出错 - 链接问题，正常");
+                    _logger.Debug("系统出错 - 链接问题，正常");
                 }
                 else if (articlePageHtml.Contains("此内容因违规无法查看"))
                 {
-                    logger.Debug("此内容因违规无法查看 - 剔除此类文章");
+                    _logger.Debug("此内容因违规无法查看 - 剔除此类文章");
                 }
                 else
                 {
-                    logger.Error(e);
+                    _logger.Error(e);
                     if (!String.IsNullOrEmpty(url))
                     {
-                        logger.Error(url);
+                        _logger.Error(url);
                     }
                     else
                     {
                         var reg = new Regex("<title>(.*?)</title>");
                         Match match = reg.Match(articlePageHtml);
-                        if (match != null)
-                        {
-                            logger.Error(match.Groups[0].Value);
-                        }
-                        else
-                        {
-                            logger.Error(articlePageHtml);
-                        }
+                        _logger.Error(match.Groups[0].Value);
                     }
                 }
+
                 throw new Exception();
-
-
             }
 
 
             return originalLink;
-
-
         }
 
 
         /// <summary>
         /// "获取微信搜狗搜索关键词联想
         /// </summary>
-        /// <param name=""></param>
+        /// <param name="keyWord"></param>
         /// <remarks>get_sugg</remarks>
         /// <returns>sugg: 联想关键词数组</returns>
         public string[] GetSuggestKeyWords(string keyWord)
         {
-            string[] suggArray = new string[] { };
+            string[] suggArray;
             string url = "http://w.sugg.sogou.com/sugg/ajaj_json.jsp?key=" + keyWord + "&type=wxpub&pr=web";
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
@@ -532,17 +490,14 @@ namespace WeGouSharpPlus
                 var match = regex.Match(text);
                 string result = match.Groups["0"].Value;
                 suggArray = result.Replace("[", "").Replace("]", "").Replace("\"", "").Split(',');
-
             }
             catch (Exception e)
             {
-                logger.Error("sugg refind error", e);
+                _logger.Error("sugg refind error", e);
                 throw new Exception("sugg refind error");
             }
 
             return suggArray;
-
-
         }
 
 
@@ -552,8 +507,6 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public List<HotWord> GetTopWords()
         {
-
-
             string url = "http://weixin.sogou.com/";
             WebHeaderCollection headers = new WebHeaderCollection();
             headers.Add("Host", "weixin.sogou.com");
@@ -566,29 +519,26 @@ namespace WeGouSharpPlus
             var targetArea = pageDoc.DocumentNode.SelectNodes("//*[@id='topwords']/li");
             List<HotWord> listTopWords = new List<HotWord>();
 
+            HotWord hotWord = new HotWord();
             foreach (var li in targetArea)
             {
-                HotWord hotWord = new HotWord();
                 try
                 {
                     hotWord.Rank = Convert.ToInt16(li.SelectSingleNode("i").InnerText);
                     hotWord.Word = li.SelectSingleNode("a").InnerText;
                     hotWord.JumpLink = li.SelectSingleNode("a").GetAttributeValue("href", "");
-                    hotWord.HotDegree = Convert.ToInt16(li.SelectSingleNode("span/span").GetAttributeValue("style", "").Replace("width:", "").Replace("%", "").Trim());
+                    hotWord.HotDegree = Convert.ToInt16(li.SelectSingleNode("span/span").GetAttributeValue("style", "")
+                        .Replace("width:", "").Replace("%", "").Trim());
                     listTopWords.Add(hotWord);
                 }
                 catch (Exception e)
                 {
-                    logger.Debug(e);
+                    _logger.Debug(e);
                 }
-
-
             }
 
             return listTopWords;
         }
-
-
 
 
         /// <summary>
@@ -600,8 +550,7 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public List<Article> GetArticleByCategoryIndex(int categoryIndex, int page)
         {
-
-            string pageStr = "";// "pc_" + page;
+            string pageStr = ""; // "pc_" + page;
             if (page == 0)
             {
                 pageStr = "pc_" + categoryIndex; //分类N第0页格式为xxxx/pc/pc_N/pc_N.html
@@ -620,77 +569,57 @@ namespace WeGouSharpPlus
             headers.Add("Host", "weixin.sogou.com");
             headers.Add("Referer", "http://weixin.sogou.com/");
             headers.Add("Accept", "*/*");
-            HttpHelper NetHelper = new HttpHelper();
-            string text = NetHelper.Get(headers, url, "UTF-8");
+            HttpHelper netHelper = new HttpHelper();
+            string text = netHelper.Get(headers, url, "UTF-8");
 
             HtmlDocument pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             string targetXpath = "";
-            if (page == 0)
-            {
-                targetXpath = "//ul[@class='news-list']/li";
-            }
-            else
-            {
-                targetXpath = "li";
-            }
+            targetXpath = page == 0 ? "//ul[@class='news-list']/li" : "li";
+
             var targetArea = pageDoc.DocumentNode.SelectNodes(targetXpath);
 
-            List<Article> ListArticle = new List<Article>();
+            List<Article> listArticle = new List<Article>();
 
-            if (targetArea != null)
+            if (targetArea == null) return null;
+            foreach (var li in targetArea)
             {
-                foreach (var li in targetArea)
+                try
                 {
-                    try
+                    Article article = new Article() {Imgs = new List<string>()};
+                    OfficialAccount account = new OfficialAccount();
+                    article.Title = li.SelectSingleNode("div[2]/h3/a").InnerText;
+                    article.Url = li.SelectSingleNode("div[1]/a").GetAttributeValue("href", "");
+                    article.Brief =
+                        WebUtility.HtmlDecode(li.SelectSingleNode("div[2]/p[@class='txt-info']").InnerText);
+                    string coverImg = li.SelectSingleNode("div[1]/a/img").GetAttributeValue("src", "");
+                    if (!string.IsNullOrEmpty(coverImg))
                     {
-
-                        Article article = new Article() { Imgs = new List<string>() };
-                        OfficialAccount account = new OfficialAccount();
-                        article.Title = li.SelectSingleNode("div[2]/h3/a").InnerText;
-                        article.Url = li.SelectSingleNode("div[1]/a").GetAttributeValue("href", "");
-                        article.Brief = WebUtility.HtmlDecode(li.SelectSingleNode("div[2]/p[@class='txt-info']").InnerText);
-                        string coverImg = li.SelectSingleNode("div[1]/a/img").GetAttributeValue("src", "");
-                        if (!string.IsNullOrEmpty(coverImg))
-                        {
-                            article.Imgs.Add(coverImg);
-                        }
-
-                        article.Time = li.SelectSingleNode("div[2]/div/span").GetAttributeValue("t", "");
-                        article.ArticleListUrl = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("href", "");
-
-                        account.AccountPageurl = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("href", "");
-                        account.Name = li.SelectSingleNode("div[2]/div/a").InnerText;
-                        string isV = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("data-isv", "");
-                        if (isV == "1")
-                        {
-                            account.IsAuth = true;
-                        }
-                        else
-                        {
-                            account.IsAuth = false;
-                        }
-                        account.ProfilePicture = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("data-headimage", "");
-
-
-                        article.officialAccount = account;
-                        ListArticle.Add(article);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.Error(e);
+                        article.Imgs.Add(coverImg);
                     }
 
+                    article.Time = li.SelectSingleNode("div[2]/div/span").GetAttributeValue("t", "");
+                    article.ArticleListUrl = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("href", "");
+
+                    account.AccountPageurl = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("href", "");
+                    account.Name = li.SelectSingleNode("div[2]/div/a").InnerText;
+                    string isV = li.SelectSingleNode("div[2]/div/a").GetAttributeValue("data-isv", "");
+                    account.IsAuth = isV == "1";
+                    account.ProfilePicture =
+                        li.SelectSingleNode("div[2]/div/a").GetAttributeValue("data-headimage", "");
+
+                    article.officialAccount = account;
+                    listArticle.Add(article);
                 }
-
+                catch (Exception e)
+                {
+                    _logger.Error(e);
+                }
             }
 
 
-
-            return ListArticle;
-
+            return listArticle;
         }
-
 
 
         /// <summary>
@@ -700,15 +629,12 @@ namespace WeGouSharpPlus
         /// <returns></returns>
         public List<Article> GetAllRecentArticle(int maxPage)
         {
-
             List<Article> listArticles = new List<Article>();
 
             for (int cateIndex = 0; cateIndex < 20; cateIndex++)
             {
                 int pageIndex = 0;
                 var articles = this.GetArticleByCategoryIndex(cateIndex, pageIndex);
-                //while(!(articles == null))
-                //
                 while (pageIndex < maxPage)
                 {
                     listArticles.AddRange(articles);
@@ -717,11 +643,9 @@ namespace WeGouSharpPlus
                     articles = this.GetArticleByCategoryIndex(cateIndex, pageIndex);
                 }
             }
+
             return listArticles;
         }
-
-
-
 
 
         private void deal_mass_send_msg_page(string wechatid, bool updatecache = true)
@@ -761,15 +685,6 @@ namespace WeGouSharpPlus
             //except AttributeError:
             //    logger.error('deal_mass_send_msg_page error, please delete cache file')
             //        raise WechatSogouHistoryMsgException('deal_mass_send_msg_page error, please delete cache file')
-
-
-
         }
-
-
-
-
-
-
     }
 }
