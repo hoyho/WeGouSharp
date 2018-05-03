@@ -9,6 +9,8 @@ using System.Drawing;
 using static WeGouSharpPlus.Tools;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using WeGouSharpPlus.YunDaMa;
 
 namespace WeGouSharpPlus
 {
@@ -507,7 +509,7 @@ namespace WeGouSharpPlus
         /// 对于(搜狗搜索框搜索关键字)出现验证码，识别验证码，输入验证码解封 返回解封码，用于下次请求的cookie中
         /// </summary>
         /// <returns></returns>
-        public string UnLock(bool isOCR)
+        public string UnLock(bool isOCR = false,bool useCloudDecode = false)
         {
             logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
@@ -520,6 +522,7 @@ namespace WeGouSharpPlus
             {
                 //todo
             }
+            
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Console.WriteLine("请输入验证码：   ");
@@ -533,9 +536,23 @@ namespace WeGouSharpPlus
                 Console.WriteLine("请输入验证码：");
             }
 
+            var verifyCode = "";
+            if (useCloudDecode)
+            {
+                var returnJSON = PostFormData.PostForm("rome7054","passwordunknow","1006","upload","1","22cc5376925e9387a23cf797cb9ba745",
+                    "60","captcha/vcode.jpg");
+                var ydm =  JsonConvert.DeserializeObject<Model.YunDaMa>(returnJSON );
+                //todo request for code
+                verifyCode = ydm?.text;
+                //todo , save code and image to another folder for further train with tensorflow
+            }
+            else
+            {
+                verifyCode = Console.ReadLine();
+            }
+            
 
-
-            string verifyCode = Console.ReadLine();
+            //string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
             var refParam = _vcode_url.Replace("http://weixin.sogou.com", "");
             refParam = System.Web.HttpUtility.UrlEncode(refParam);
