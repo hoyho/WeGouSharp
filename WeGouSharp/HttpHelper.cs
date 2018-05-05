@@ -9,6 +9,7 @@ using System.Drawing;
 using static WeGouSharpPlus.Tools;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using WeGouSharpPlus.YunDaMa;
 
@@ -283,25 +284,31 @@ namespace WeGouSharpPlus
         /// <returns>response</returns>
         public string Get(string url)
         {
-
-
             var request = (HttpWebRequest)WebRequest.Create(url);
-
-
             request.Method = "GET";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            // Get the stream containing content returned by the server.
-            Stream dataStream = response.GetResponseStream();
-            // Open the stream using a StreamReader for easy access.
-            StreamReader reader = new StreamReader(dataStream);
-            // Read the content.
-            string responseFromServer = reader.ReadToEnd();
+            string responseFromServer = "";
+            try
+            {
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                // Get the stream containing content returned by the server.
+                Stream dataStream = response.GetResponseStream();
+                // Open the stream using a StreamReader for easy access.
+                StreamReader reader = new StreamReader(dataStream);
+                // Read the content.
+                responseFromServer = reader.ReadToEnd();
 
-            // Cleanup the streams and the response.
-            reader.Close();
-            dataStream.Close();
-            response.Close();
-
+                // Cleanup the streams and the response.
+                reader.Close();
+                dataStream.Close();
+                response.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                logger.Error((e));
+                //throw;
+            }
+            
             return responseFromServer;
         }
 
@@ -509,7 +516,7 @@ namespace WeGouSharpPlus
         /// 对于(搜狗搜索框搜索关键字)出现验证码，识别验证码，输入验证码解封 返回解封码，用于下次请求的cookie中
         /// </summary>
         /// <returns></returns>
-        public string UnLock(bool isOCR = false,bool useCloudDecode = false)
+        public string UnLock(bool useCloudDecode = false)
         {
             logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
@@ -517,11 +524,6 @@ namespace WeGouSharpPlus
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
             var content = netHelper.Get(headers, codeurl, "", true);
-
-            if (isOCR)
-            {
-                //todo
-            }
             
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -539,12 +541,8 @@ namespace WeGouSharpPlus
             var verifyCode = "";
             if (useCloudDecode)
             {
-                var returnJSON = PostFormData.PostForm("rome7054","passwordunknow","1006","upload","1","22cc5376925e9387a23cf797cb9ba745",
-                    "60","captcha/vcode.jpg");
-                var ydm =  JsonConvert.DeserializeObject<Model.YunDaMa>(returnJSON );
-                //todo request for code
-                verifyCode = ydm?.text;
-                //todo , save code and image to another folder for further train with tensorflow
+                var decoder = new OnlineDecoder();
+                 verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
             }
             else
             {

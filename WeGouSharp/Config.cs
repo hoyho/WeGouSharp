@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace WeGouSharpPlus
 {
@@ -11,6 +12,7 @@ namespace WeGouSharpPlus
 
         public static string CacheSessionName = "requests_wechatsogou_session";
 
+        public static IConfiguration Configuration => Program._Configuration;
 
 
     }

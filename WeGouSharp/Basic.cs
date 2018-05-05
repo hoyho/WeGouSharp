@@ -79,7 +79,7 @@ namespace WeGouSharpPlus
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-               var unlockCode = netHelper.UnLock(false);
+               var unlockCode = netHelper.UnLock(true);
 
                 //continute request after post vcode notice ref and request url
                 var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com/", "");

@@ -81,6 +81,23 @@ namespace WeGouSharpPlus
             return true;
         }
 
+
+        /// <summary>
+        /// 保存文件到训练目录
+        /// </summary>
+        /// <param name="srcPath"></param>
+        /// <param name="descPath"></param>
+        public static void CopytoTrain(string srcPath, string descPath)
+        {
+            FileInfo file = new FileInfo(srcPath);
+            if (file.Exists)
+            {
+                // true is overwrite
+                file.CopyTo(descPath, true);
+            }
+        }
+        
+
         static public CookieCollection LoadCookieFromCache()
         {
             WechatCache cache = new WechatCache(Config.CacheDir, 1);

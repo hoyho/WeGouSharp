@@ -5,9 +5,10 @@
     /// </summary>
     public class YunDaMa
     {
-        public int ret { get; set; }
+        //成功的时候是返回0的
+        public int ret { get; set; } = -1; 
 
-        public int cid { get; set; }
+        public string cid { get; set; }
         
         public string text { get; set; }
     }
