@@ -168,8 +168,9 @@ namespace WeGouSharpPlus.YunDaMa
             var netHelper = new HttpHelper();
             var json = netHelper.Get(requestUrl);;
             var ydm = JsonConvert.DeserializeObject<Model.YunDaMa>(json);
-            if (ydm?.ret!=0 && _tryTime<_maxTry)
+            if (ydm?.ret!=0 && _tryTime<_maxTry) //结果未出。继续等待
             {
+                _tryTime += 1;
                 Thread.Sleep(3000);
                 json = GetDecodeResult(cid);
             }
