@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 
-namespace WeGouSharpPlus.YunDaMa
+namespace WeGouSharp.YunDaMa
 {
     public static class PostFormData
     {

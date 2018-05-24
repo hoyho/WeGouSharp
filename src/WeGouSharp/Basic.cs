@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using WeGouSharpPlus.Model;
 
-namespace WeGouSharpPlus
+namespace WeGouSharp
 {
     class Basic
     {

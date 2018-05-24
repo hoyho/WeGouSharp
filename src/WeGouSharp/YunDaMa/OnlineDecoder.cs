@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
-namespace WeGouSharpPlus.YunDaMa
+namespace WeGouSharp.YunDaMa
 {
     /// <summary>
     /// 云打码实现类

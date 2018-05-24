@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WeGouSharpPlus.Model
+namespace WeGouSharp.Model
 {
     /// <summary>
     /// 首页搜索热词

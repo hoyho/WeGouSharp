@@ -1,4 +1,4 @@
-﻿namespace WeGouSharpPlus.YunDaMa
+﻿namespace WeGouSharp.YunDaMa
 {
     /// <summary>
     /// 打码接口

@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using WeGouSharpPlus.YunDaMa;
 
-namespace WeGouSharpPlus
+namespace WeGouSharp
 {
     class HttpHelper
     {

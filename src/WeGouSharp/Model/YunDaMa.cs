@@ -1,4 +1,4 @@
-﻿namespace WeGouSharpPlus.Model
+﻿namespace WeGouSharp.Model
 {
     /// <summary>
     /// 云打码

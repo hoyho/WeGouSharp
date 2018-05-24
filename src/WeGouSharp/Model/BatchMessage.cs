@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WeGouSharpPlus.Model
+namespace WeGouSharp.Model
 {
    public class BatchMessage
     {

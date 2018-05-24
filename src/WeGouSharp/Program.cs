@@ -8,7 +8,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WeGouSharpPlus
+namespace WeGouSharp
 {
    public class Program
     {

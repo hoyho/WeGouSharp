@@ -8,7 +8,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using WeGouSharpPlus.Model;
 
-namespace WeGouSharpPlus
+namespace WeGouSharp
 {
     public class WechatSogouAPI : WechatSogouBasic
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WeGouSharpPlus.Model
+namespace WeGouSharp.Model
 {
     /// <summary>
     ///加入到链接中的一些参数

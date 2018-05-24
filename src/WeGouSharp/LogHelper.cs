@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using log4net.Repository;
 
-namespace WeGouSharpPlus
+namespace WeGouSharp
 {
     class LogHelper
     {
