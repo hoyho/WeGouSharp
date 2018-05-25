@@ -6,12 +6,12 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Drawing;
-using static WeGouSharpPlus.Tools;
+using static WeGouSharp.Tools;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using WeGouSharpPlus.YunDaMa;
+using WeGouSharp.YunDaMa;
 
 namespace WeGouSharp
 {

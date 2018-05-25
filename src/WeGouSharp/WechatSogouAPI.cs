@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using WeGouSharpPlus.Model;
+using WeGouSharp.Model;
 
 namespace WeGouSharp
 {
@@ -178,7 +178,7 @@ namespace WeGouSharp
                             .Replace("</em>", "");
 
                     var timeRegex = new Regex(@"timeConvert\('(?(time)<1>(\d+))'\)");
-                    time = timeRegex.Match(time).Groups.FirstOrDefault()?.Value;
+                    time = timeRegex.Match(time).Groups[1].Value;
 
                     var article = new Article
                     {
