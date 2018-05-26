@@ -4,7 +4,8 @@ using System.Text;
 
 namespace WeGouSharp.Model
 {
-   public class BatchMessage
+    //群发消息
+    public class BatchMessage
     {
         public int Meaasgeid { get; set; }
 
@@ -45,6 +46,7 @@ namespace WeGouSharp.Model
         //for type 视频
         public string CdnVideoId { get; set; }
 
+        //缩略图
         public string Thumb { get; set; }
 
         public string VideoSrc { get; set; }

@@ -9,10 +9,6 @@ using WeGouSharp.Model;
 
 namespace WeGouSharp
 {
-    class Basic
-    {
-    }
-
 
     public class WechatSogouBasic
     {
