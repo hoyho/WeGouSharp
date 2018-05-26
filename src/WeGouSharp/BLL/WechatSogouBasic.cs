@@ -67,15 +67,16 @@ namespace WeGouSharp
             string text = "";
             WebHeaderCollection headers = new WebHeaderCollection();
             HttpHelper netHelper = new HttpHelper();
-            string requestUrl = string.Format("http://weixin.sogou.com/weixin?query={0}&_sug_type_=&_sug_=n&type=1&page={1}&ie=utf8", name, page);
+            string requestUrl =
+                $"http://weixin.sogou.com/weixin?query={name}&_sug_type_=&_sug_=n&type=1&page={page}&ie=utf8";
 
-                        try
+            try
             {
                 text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8",true);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-               var unlockCode = netHelper.UnLock(true);
+               var unlockCode = netHelper.UnLock(false);
 
                 //continute request after post vcode notice ref and request url
                 var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com/", "");

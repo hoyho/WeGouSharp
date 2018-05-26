@@ -528,7 +528,7 @@ namespace WeGouSharp
             }
             else
             {
-                Console.WriteLine(@"your system is not support show image in console app /n
+                Console.WriteLine(@"your system is not support show image in console app \n
                  please open captcha from ./captcha/vcode");
                 Tools.SaveImage(content, "vcode.jpg");
                 Console.WriteLine("请输入验证码：");

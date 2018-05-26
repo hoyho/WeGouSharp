@@ -64,7 +64,7 @@ namespace WeGouSharp
         //保存验证码
         public static bool SaveImage(string base64String, string ImgName)
         {
-            var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); //Path
+            var path = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
             path = Path.Combine(path, "captcha");
             //Check if directory exist
             if (!System.IO.Directory.Exists(path))

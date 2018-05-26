@@ -162,7 +162,6 @@ namespace WeGouSharp
         /// </summary>
         /// <returns></returns>
         public List<string> ListCache()
-
         {        //return a list of (fully qualified) cache filenames
 
 
@@ -175,24 +174,6 @@ namespace WeGouSharp
                 }
             }
             return cacheList;
-        }
-
-        public void _prune()
-        {
-            //    entries = self._list_dir()
-            //if len(entries) > self._threshold:
-            //    now = time()
-            //    for idx, fname in enumerate(entries):
-            //        try:
-            //            remove = False
-            //            with open(fname, 'rb') as f:
-            //                expires = pickle.load(f)
-            //            remove = (expires != 0 and expires <= now) or idx % 3 == 0
-
-            //            if remove:
-            //                os.remove(fname)
-            //        except(IOError, OSError):
-            //            pass
         }
 
 
