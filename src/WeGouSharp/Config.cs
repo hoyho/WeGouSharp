@@ -12,8 +12,7 @@ namespace WeGouSharp
 
         public static string CacheSessionName = "requests_wechatsogou_session";
 
-        public static IConfiguration Configuration => Program._Configuration;
-
-
+        public static IConfiguration Configuration =>
+            ServiceProviderAccessor.ServiceProvider.GetService(typeof(IConfiguration)) as IConfiguration;
     }
 }

@@ -1,16 +1,42 @@
+using System;
+using log4net;
+using log4net.Core;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using WeGouSharp.YunDaMa;
+
 namespace WeGouSharp
 {
-    //暴露给外部调用的上层类
-    public class WeGou
+    //暴露给外部调用的服务类
+    public class WeGouService
     {
-        WechatSogouAPI api = new WechatSogouAPI();
 
+       private readonly WechatSogouAPI _wechatSogouApi = new WechatSogouAPI();
+
+        /// <summary>
+        /// 依赖服务注入
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="configuration"></param>
+        /// <param name="captchaDecode"></param>
+        public WeGouService(ILog logger, IConfiguration configuration,IDecode captchaDecode)
+        {
+            //注入依赖服务
+            var sp = new ServiceCollection()
+                .AddSingleton<IConfiguration>(configuration)
+                .AddSingleton(logger)
+                .AddSingleton(captchaDecode)
+                .BuildServiceProvider();
+            ServiceProviderAccessor.SetServiceProvider(sp);
+            
+        }
+        
 
         #region 公众号
         //根据关键字搜索公众号
         public string SearchOfficialAccount(string keyWord, int page = 1)
         {
-            var accountList = api.SearchOfficialAccount(keyWord, page);
+            var accountList = _wechatSogouApi.SearchOfficialAccount(keyWord, page);
             return Tools.TryParseJson(accountList);
         }
 
@@ -18,7 +44,7 @@ namespace WeGouSharp
         //根据公众号id查询
         public string GetAccountInfoById(string accountId)
         {
-            var account = api.GetAccountInfoById(accountId);
+            var account = _wechatSogouApi.GetAccountInfoById(accountId);
             return Tools.TryParseJson(account);
         }
 
@@ -28,7 +54,7 @@ namespace WeGouSharp
         #region 文章
         public string SearchArticle(string keyWord)
         {
-            var article = api.SearchArticle(keyWord);
+            var article = _wechatSogouApi.SearchArticle(keyWord);
             return Tools.TryParseJson(article);
         }
 
@@ -36,7 +62,7 @@ namespace WeGouSharp
         //从临时文章链接提取文章正文
         public string ResolveArticleByUrl(string articleUrl)
         {
-            var article = api.ExtractArticleMain(articleUrl);
+            var article = _wechatSogouApi.ExtractArticleMain(articleUrl);
             return article;
         }
 
@@ -44,7 +70,7 @@ namespace WeGouSharp
         //从临时文章页面的html代码中提取文章正文
         public string ResolveArticleByHtml(string articleHtml)
         {
-            var article = api.ExtractArticleMain("", articleHtml);
+            var article = _wechatSogouApi.ExtractArticleMain("", articleHtml);
             return article;
         }
 
@@ -64,7 +90,7 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesByUrl(string accountPageUrl = "")
         {
-            var rs = api.GetOfficialAccountMessages(accountPageUrl);
+            var rs = _wechatSogouApi.GetOfficialAccountMessages(accountPageUrl);
             return Tools.TryParseJson(rs);
         }
         
@@ -76,7 +102,7 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesById(string wechatId = "")
         {
-            var rs = api.GetOfficialAccountMessages("",wechatId,"");
+            var rs = _wechatSogouApi.GetOfficialAccountMessages("",wechatId,"");
             return Tools.TryParseJson(rs);
         }
         
@@ -85,9 +111,9 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="accountName"></param>
         /// <returns></returns>
-        public string GetOfficialAccountMessagesByName(string accountName = "")
+        public string GetOfficialAccountMessagesByName(string accountName)
         {
-            var rs = api.GetOfficialAccountMessages("","","accountName");
+            var rs = _wechatSogouApi.GetOfficialAccountMessages("","",accountName);
             return Tools.TryParseJson(rs);
         }
         
@@ -96,27 +122,27 @@ namespace WeGouSharp
         //获取联想词汇
         public string GetSuggestKeyWords(string inputKeyWord)
         {
-            var rs = api.GetSuggestKeyWords(inputKeyWord);
+            var rs = _wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
             return Tools.TryParseJson(rs);
         }
 
         //获取首页热搜词汇
         public string GetTopWords()
         {
-            var words = api.GetTopWords();
+            var words = _wechatSogouApi.GetTopWords();
             return Tools.TryParseJson(words);
         }
 
         public string GetArticleByCategoryIndex(int categoryIndex, int page)
         {
-            var rs = api.GetArticleByCategoryIndex(categoryIndex, page);
+            var rs = _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return Tools.TryParseJson(rs);
         }
 
 
         public string GetAllRecentArticle(uint maxPage)
         {
-            var articles = api.GetAllRecentArticle((int)maxPage);
+            var articles = _wechatSogouApi.GetAllRecentArticle((int)maxPage);
             return Tools.TryParseJson(articles);
         }
 

@@ -1,7 +1,6 @@
 ﻿using log4net;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -9,8 +8,6 @@ using System.Drawing;
 using static WeGouSharp.Tools;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using WeGouSharp.YunDaMa;
 
 namespace WeGouSharp

@@ -9,11 +9,11 @@ namespace WeGouTest
 {
     public class ArticletTest : BasicConfig
     {
-        WeGou api;
+        WeGouService api;
 
         public ArticletTest()
         {
-            api = new WeGou();
+            api = ApiService;
         }
 
         [Fact]

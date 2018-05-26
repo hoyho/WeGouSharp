@@ -10,11 +10,11 @@ namespace WeGouTest
 {
     public class MessageTest : BasicConfig
     {
-        WeGou _api;
+        WeGouService _api;
 
         public MessageTest()
         {
-            _api = new WeGou();
+            _api = ApiService;
         }
 
         [Fact]

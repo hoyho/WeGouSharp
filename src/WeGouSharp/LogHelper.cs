@@ -12,31 +12,7 @@ namespace WeGouSharp
     {
 
         //log4net日志
-        public static ILog logger = LogManager.GetLogger(typeof(LogHelper));
-
-
-        //月份日志
-        public static void LogText(string content)
-        {
-            try
-            {
-                //System.IO.File.AppendAllText(System.Reflection.Assembly.GetExecutingAssembly().Location  + DateTime.Now.Year + "-" + DateTime.Now.Month + ".log" , DateTime.Now + ", " +log +Environment.NewLine);
-                string folder = "";
-                folder = System.AppDomain.CurrentDomain.BaseDirectory.ToString();
-                if (!Directory.Exists(folder))
-                {
-                    Directory.CreateDirectory(folder);
-                }
-                string logFile = "";
-                logFile = folder + DateTime.Now.Year + "-" + DateTime.Now.Month + ".log";
-                System.IO.File.AppendAllText(logFile, DateTime.Now + ", " + content + Environment.NewLine);
-
-            }
-            catch (Exception e)
-            {
-                System.Console.WriteLine("LogText()-->" + e.ToString() + "\n");
-            }
-        }
+        public static ILog logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
 
 
         /// <summary>

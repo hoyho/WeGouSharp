@@ -8,17 +8,17 @@ namespace WeGouTest
 {
     public class AccountTest : BasicConfig
     {
-        WeGou _api;
+//        WeGouService _api;
 
         public AccountTest()
         {
-            _api = new WeGou();
+            //_api = new WeGouService();
         }
 
         [Fact]
         public void TestSearchOfficialAccount()
         {
-            var test = _api.SearchOfficialAccount("广州大学");
+            var test = ApiService.SearchOfficialAccount("广州大学");
             var acc = JsonConvert.DeserializeObject<OfficialAccount>(test);
             Assert.False(acc.Name.Contains("广州大学"));
         }
@@ -26,7 +26,7 @@ namespace WeGouTest
         [Fact]
         public void TestGetAccountInfoById()
         {
-            var test = _api.GetAccountInfoById("ME_volunteer");
+            var test = ApiService.GetAccountInfoById("ME_volunteer");
             var acc = JsonConvert.DeserializeObject<OfficialAccount>(test);
             Assert.False(acc.Name.Contains("广州大学"));
         }
