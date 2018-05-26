@@ -60,11 +60,11 @@ namespace WeGouSharp
         public delegate void ShowImageHandle(string base64String);
 
 
-//保存验证码
+        //保存验证码
         public static bool SaveImage(string base64String, string ImgName)
         {
-            var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location ); //Path
-            path = Path.Combine(path,"captcha");
+            var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); //Path
+            path = Path.Combine(path, "captcha");
             //Check if directory exist
             if (!System.IO.Directory.Exists(path))
             {
@@ -72,7 +72,7 @@ namespace WeGouSharp
             }
 
             //set the image path
-            string imgPath = Path.Combine(path,ImgName);
+            string imgPath = Path.Combine(path, ImgName);
 
             byte[] imageBytes = Convert.FromBase64String(base64String);
 
@@ -96,7 +96,7 @@ namespace WeGouSharp
                 file.CopyTo(descPath, true);
             }
         }
-        
+
 
         static public CookieCollection LoadCookieFromCache()
         {
@@ -115,6 +115,20 @@ namespace WeGouSharp
         public static string replaceSpace(string s)
         {
             return s.Replace(" ", "").Replace("\r\n", "");
+        }
+
+
+
+        public static string TryParseJson(object target)
+        {
+            try
+            {
+                return Newtonsoft.Json.JsonConvert.SerializeObject(target);
+            }
+            catch
+            {
+                throw new WechatSogouJsonException();
+            }
         }
 
 
