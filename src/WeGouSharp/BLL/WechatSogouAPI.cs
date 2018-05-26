@@ -10,7 +10,7 @@ using WeGouSharp.Model;
 
 namespace WeGouSharp
 {
-    public class WechatSogouAPI : WechatSogouBasic
+     class WechatSogouAPI : WechatSogouBasic
     {
         readonly ILog _logger = LogManager.GetLogger(typeof(Program));
 

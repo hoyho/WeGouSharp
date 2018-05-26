@@ -7,6 +7,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace WeGouSharp
 {
@@ -123,7 +124,7 @@ namespace WeGouSharp
         {
             try
             {
-                return Newtonsoft.Json.JsonConvert.SerializeObject(target);
+                return JsonConvert.SerializeObject(target,Formatting.Indented);
             }
             catch
             {

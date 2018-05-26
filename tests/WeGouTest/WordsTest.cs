@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using WeGouSharp;
@@ -7,27 +7,27 @@ using Xunit;
 
 namespace WeGouTest
 {
-    public class ArticletTest : BasicConfig
+    public class WordsTest : BasicConfig
     {
         WeGou api;
 
-        public ArticletTest()
+        public WordsTest()
         {
             api = new WeGou();
         }
 
         [Fact]
-        public void TestSearchArticle()
+        public void TestGetSuggestKeyWords()
         {
-            var rs = api.SearchArticle("广州大学城");
+            var rs = api.GetSuggestKeyWords("广州大学城");
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
         
         [Fact]
-        public void TestResolveArticleByUrl()
+        public void TestGetTopWords()
         {
-            var rs = api.ResolveArticleByUrl("");
+            var rs = api.GetTopWords();
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
@@ -40,21 +40,6 @@ namespace WeGouTest
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
-        
-        
-        [Fact]
-        public void TestGetArticleByCategoryIndex()
-        {
-            var rs = api.GetArticleByCategoryIndex(1,2);
-        }
-        
-        
-        [Fact]
-        public void TestGetAllRecentArticle()
-        {
-            var rs = api.GetAllRecentArticle(1);
-        }
-        
         
         
     }

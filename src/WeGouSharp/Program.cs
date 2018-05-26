@@ -33,7 +33,6 @@ namespace WeGouSharp
 //            containerBuilder.register
             var myConf = sp.GetService<IConfiguration>();
             //调用示例
-            Test.run();
         }
  
         //初始化log4net配置
