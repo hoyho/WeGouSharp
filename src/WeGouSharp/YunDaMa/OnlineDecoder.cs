@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using WeGouSharp.Model;
 
 namespace WeGouSharp.YunDaMa
 {
@@ -18,29 +19,25 @@ namespace WeGouSharp.YunDaMa
 
         private int _maxTry = 1;
 
-        private IConfiguration conf { get; set; }
+        private YunDaMaConfig Conf { get; set; }
 
-        public OnlineDecoder(IConfiguration configuration)
+       
+        public OnlineDecoder(YunDaMaConfig yConfig)
         {
-            this.conf = configuration;
-        }
-        public OnlineDecoder()
-            //:this(configuration:new ServiceCollection().BuildServiceProvider().GetService<ConfigurationRoot>())
-        {
-            conf = Config.Configuration;
+            Conf = yConfig;
         }
 
         public string OnlineDecode(string imageLocation)
         {
-            var userName = conf.GetSection("yundama_username").Value;
-            var psw = conf.GetSection("yundama_password").Value;
-            var codetype = conf.GetSection("yundama_codetype").Value;
-            var appid = conf.GetSection("yundama_appid").Value;
-            var appkey = conf.GetSection("yundama_appkey").Value;
-            var timeout = conf.GetSection("yundama_timeout").Value;
+            var userName = Conf.UserName;
+            var psw = Conf.PassWord;
+            var codetype = Conf.CodeType;
+            var appid = Conf.AppId;
+            var appkey = Conf.AppKey;
+            var timeout = Conf.TimeOut;
 
             var uploadResult =  PostForm(userName,psw,codetype,"upload",appid,appkey,timeout,"captcha/vcode.jpg" );
-            var ydm = JsonConvert.DeserializeObject<Model.YunDaMa>(uploadResult);
+            var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(uploadResult);
             if (ydm!=null && !string.IsNullOrEmpty(ydm.text))
             {
                 Tools.CopytoTrain("captcha/vcode.jpg",$"trainingFiles/{ydm.text}.jpg");
@@ -49,7 +46,7 @@ namespace WeGouSharp.YunDaMa
 
             this._tryTime = 0; //重置，下面会用到
             var decodeResult =  GetDecodeResult(ydm?.cid);
-            ydm = JsonConvert.DeserializeObject<Model.YunDaMa>(decodeResult);
+            ydm = JsonConvert.DeserializeObject<Model.YunDaMaResponse>(decodeResult);
             Tools.CopytoTrain("captcha/vcode.jpg",$"trainingFiles/{ydm.text}.jpg");
             return ydm.text;
 
@@ -167,7 +164,7 @@ namespace WeGouSharp.YunDaMa
             var requestUrl = $"http://api.yundama.com/api.php?cid={cid}&method=result";
             var netHelper = new HttpHelper();
             var json = netHelper.Get(requestUrl);;
-            var ydm = JsonConvert.DeserializeObject<Model.YunDaMa>(json);
+            var ydm = JsonConvert.DeserializeObject<Model.YunDaMaResponse>(json);
             if (ydm?.ret!=0 && _tryTime<_maxTry) //结果未出。继续等待
             {
                 _tryTime += 1;

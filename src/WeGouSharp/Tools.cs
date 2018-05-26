@@ -87,19 +87,19 @@ namespace WeGouSharp
         /// 保存文件到训练目录
         /// </summary>
         /// <param name="srcPath"></param>
-        /// <param name="descPath"></param>
-        public static void CopytoTrain(string srcPath, string descPath)
+        /// <param name="destPath"></param>
+        public static void CopytoTrain(string srcPath, string destPath)
         {
             FileInfo file = new FileInfo(srcPath);
             if (file.Exists)
             {
                 // true is overwrite
-                file.CopyTo(descPath, true);
+                file.CopyTo(destPath, true);
             }
         }
 
 
-        static public CookieCollection LoadCookieFromCache()
+        public static CookieCollection LoadCookieFromCache()
         {
             WechatCache cache = new WechatCache(Config.CacheDir, 1);
             CookieCollection cc = cache.Get<CookieCollection>("cookieCollection");
@@ -110,14 +110,6 @@ namespace WeGouSharp
 
             return cc;
         }
-
-
-
-        public static string replaceSpace(string s)
-        {
-            return s.Replace(" ", "").Replace("\r\n", "");
-        }
-
 
 
         public static string TryParseJson(object target)

@@ -3,9 +3,10 @@ using System.IO;
 using System.Reflection;
 using log4net;
 using log4net.Config;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp;
+using WeGouSharp.Model;
+using WeGouSharp.YunDaMa;
 
 namespace WeGouTest
 {
@@ -35,12 +36,20 @@ namespace WeGouTest
             
             IConfiguration configuration = builder.Build();
 
-            var yunDaMa = configuration.GetSection();
             
-            ApiService = new WeGouService(logger,configuration);
+            var ydmConfig = new YunDaMaConfig()
+            {
+                AppId = configuration.GetSection("yundama_appid").Value,
+                AppKey = configuration.GetSection("yundama_appkey").Value,
+                PassWord =  configuration.GetSection("yundama_password").Value,
+                TimeOut = configuration.GetSection("yundama_timeout").Value,
+                UserName = configuration.GetSection("yundama_username").Value,
+                CodeType =  configuration.GetSection("yundama_codetype").Value,
+            };
+
+            var yunDaMa = new OnlineDecoder(ydmConfig);
+            
+            ApiService = new WeGouService(logger,configuration,yunDaMa);
         }
-        
-
-
     }
 }

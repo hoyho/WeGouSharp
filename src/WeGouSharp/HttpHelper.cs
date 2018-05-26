@@ -14,8 +14,7 @@ namespace WeGouSharp
 {
     class HttpHelper
     {
-
-        ILog logger = LogManager.GetLogger(typeof(Program));
+        private ILog logger = LogHelper.logger;
         string _vcode_url = ""; //需要填验证码的url
 
 
@@ -538,7 +537,7 @@ namespace WeGouSharp
             var verifyCode = "";
             if (useCloudDecode)
             {
-                var decoder = new OnlineDecoder();
+                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
                  verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
             }
             else

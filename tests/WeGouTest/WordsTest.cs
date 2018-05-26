@@ -20,7 +20,6 @@ namespace WeGouTest
         public void TestGetSuggestKeyWords()
         {
             var rs = api.GetSuggestKeyWords("广州大学城");
-            var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
         
@@ -28,8 +27,7 @@ namespace WeGouTest
         public void TestGetTopWords()
         {
             var rs = api.GetTopWords();
-            var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
-            Assert.True(rs.Length > 0);
+            Assert.True(rs.Count > 0);
         }
         
         

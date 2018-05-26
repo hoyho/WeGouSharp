@@ -20,9 +20,8 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesById()
         {
-            var test = _api.GetOfficialAccountMessagesById("bitsea");
-            var msgs = JsonConvert.DeserializeObject<List<BatchMessage>>(test);
-            Assert.False(msgs.FirstOrDefault().Author.Contains("和菜头"));
+            var rs = _api.GetOfficialAccountMessagesById("bitsea");
+            Assert.False(rs.FirstOrDefault().Author.Contains("和菜头"));
         }
         
         [Fact]
@@ -37,9 +36,9 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesBy()
         {
-            var test = _api.GetOfficialAccountMessagesByUrl("");
+            var rs = _api.GetOfficialAccountMessagesByUrl("");
+            
             //todo
-            var msgs = JsonConvert.DeserializeObject<List<BatchMessage>>(test);
 
         }
         

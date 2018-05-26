@@ -19,16 +19,14 @@ namespace WeGouTest
         public void TestSearchOfficialAccount()
         {
             var test = ApiService.SearchOfficialAccount("广州大学");
-            var acc = JsonConvert.DeserializeObject<OfficialAccount>(test);
-            Assert.False(acc.Name.Contains("广州大学"));
+            Assert.False(test.Count<0);
         }
         
         [Fact]
         public void TestGetAccountInfoById()
         {
-            var test = ApiService.GetAccountInfoById("ME_volunteer");
-            var acc = JsonConvert.DeserializeObject<OfficialAccount>(test);
-            Assert.False(acc.Name.Contains("广州大学"));
+            var rs = ApiService.GetAccountInfoById("ME_volunteer");
+            Assert.False(rs.Name.Contains("广州大学"));
         }
         
     }

@@ -3,7 +3,7 @@
     /// <summary>
     /// 云打码
     /// </summary>
-    public class YunDaMa
+    public class YunDaMaResponse
     {
         //成功的时候是返回0的
         public int ret { get; set; } = -1;
