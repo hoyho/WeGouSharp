@@ -72,8 +72,8 @@ namespace WeGouSharp
             if (string.IsNullOrEmpty(request.UserAgent))
             {
                 Random r = new Random();
-                int index = r.Next(WechatSogouBasic._agent.Count - 1);
-                request.UserAgent = WechatSogouBasic._agent.FirstOrDefault();
+                int index = r.Next(WechatSogouBasic.UserAgents.Count - 1);
+                request.UserAgent = WechatSogouBasic.UserAgents.FirstOrDefault();
             }
             if (isUseCookie)
             {
@@ -215,7 +215,7 @@ namespace WeGouSharp
             };
             if (string.IsNullOrEmpty(request.UserAgent))
             {
-                request.UserAgent = WechatSogouBasic._agent.FirstOrDefault();
+                request.UserAgent = WechatSogouBasic.UserAgents.FirstOrDefault();
             }
             if (isUseCookie)
             {
@@ -555,8 +555,8 @@ namespace WeGouSharp
             // verifyCode, this._vcode_url);
 
             Random r = new Random();
-            int index = r.Next(WechatSogouBasic._agent.Count - 1);
-            headers.Add("User-Agent", WechatSogouBasic._agent[index]);
+            int index = r.Next(WechatSogouBasic.UserAgents.Count - 1);
+            headers.Add("User-Agent", WechatSogouBasic.UserAgents[index]);
             headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + this._vcodeUrl.Replace("http://", ""));
             headers.Add("Host", "weixin.sogou.com");
             string remsg = netHelper.Post(postURL, headers, postData, true);
@@ -604,8 +604,8 @@ namespace WeGouSharp
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
             string postData = "{" + string.Format(@"'c':'{0}','r':'{1}','v': 5", verifyCode, balckUrl) + "}";//{'c': '{0}', 'r': '{1}', 'v': 5 }
             Random r = new Random();
-            int index = r.Next(WechatSogouBasic._agent.Count - 1);
-            headers.Add("User-Agent", WechatSogouBasic._agent[index]);
+            int index = r.Next(WechatSogouBasic.UserAgents.Count - 1);
+            headers.Add("User-Agent", WechatSogouBasic.UserAgents[index]);
             headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + balckUrl);
             headers.Add("Host", "weixin.sogou.com");
             string remsg = netHelper.PostJson(postURL, headers, postData);

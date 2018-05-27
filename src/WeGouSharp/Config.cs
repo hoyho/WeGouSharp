@@ -14,5 +14,7 @@ namespace WeGouSharp
 
         public static IConfiguration Configuration =>
             ServiceProviderAccessor.ServiceProvider.GetService(typeof(IConfiguration)) as IConfiguration;
+
+        
     }
 }
