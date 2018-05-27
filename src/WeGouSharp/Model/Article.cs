@@ -22,6 +22,6 @@ namespace WeGouSharp.Model
 
         public string ArticleListUrl { get; set; }//???
 
-        public OfficialAccount officialAccount { get; set; }
+        public OfficialAccount OfficialAccount { get; set; }
     }
 }

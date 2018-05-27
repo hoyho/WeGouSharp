@@ -1,15 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace WeGouSharp
 {
 
-
-    class WechatSogouException : Exception
+//基于搜狗搜索的的微信公众号爬虫接口 异常基类
+    class  WechatSogouException: Exception
     {
-        //基于搜狗搜索的的微信公众号爬虫接口 异常基类
+        public WechatSogouException(string info)
+        {
+            Info = info;
+        }
+        public WechatSogouException():this(String.Empty)
+        {
+        }
+        
+        public string Info;
+        
     }
+    
+    
+    
 
 
 
@@ -18,7 +31,7 @@ namespace WeGouSharp
     {
         public WechatSogouVcodeException(string remark)
         {
-            this.MoreInfo = remark;
+            MoreInfo = remark;
         }
 
         public string MoreInfo
@@ -36,7 +49,10 @@ namespace WeGouSharp
     ///验证码不通过
     class WechatSogouVcodeFailException : WechatSogouException
     {
-
+        public WechatSogouVcodeFailException(string info)
+        {
+            Info = info;
+        }
     }
 
     class WechatSogouVcodeOcrException : WechatSogouException
