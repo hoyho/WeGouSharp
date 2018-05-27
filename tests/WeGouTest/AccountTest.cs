@@ -1,19 +1,9 @@
-using System;
-using Newtonsoft.Json;
 using Xunit;
-using WeGouSharp;
-using WeGouSharp.Model;
 
 namespace WeGouTest
 {
     public class AccountTest : BasicConfig
     {
-//        WeGouService _api;
-
-        public AccountTest()
-        {
-            //_api = new WeGouService();
-        }
 
         [Fact]
         public void TestSearchOfficialAccount()
