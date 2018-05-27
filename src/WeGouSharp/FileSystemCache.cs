@@ -32,7 +32,8 @@ namespace WeGouSharp
         public int _NormalizeTimeout(int timeout)
         {
 
-            DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
+            var startTime = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
+
             long timeStamp = (long)(DateTime.Now - startTime).TotalSeconds; // 相差秒数
             if (timeout != 0)
             {
