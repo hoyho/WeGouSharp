@@ -14,10 +14,9 @@ namespace WeGouSharp
 {
     class HttpHelper
     {
-        private ILog logger = LogHelper.logger;
-        string _vcode_url = ""; //需要填验证码的url
-
-
+        private readonly ILog _logger = LogHelper.logger;
+        
+        string _vcodeUrl = ""; //需要填验证码的url
 
 
         /// <summary>
@@ -25,6 +24,8 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="headers"></param>
         /// <param name="url"></param>
+        /// <param name="responseEncoding"></param>
+        /// <param name="isUseCookie"></param>
         /// <returns>respondse</returns>
         public string Get(WebHeaderCollection headers, string url, string responseEncoding = "UTF-8", bool isUseCookie = false)
         {
@@ -143,14 +144,14 @@ namespace WeGouSharp
                     if (responseText.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
                     {
 
-                        _vcode_url = url;
+                        _vcodeUrl = url;
                         throw new WechatSogouVcodeException("vcode") { VisittingUrl = url };
                         //throw new Exception("weixin.sogou.com verification code");
                     }
                 }
                 else
                 {
-                    logger.Error("requests status_code error" + response.StatusCode);
+                    _logger.Error("requests status_code error" + response.StatusCode);
                     throw new Exception("requests status_code error");
                 }
                 reader.Close();
@@ -301,7 +302,7 @@ namespace WeGouSharp
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                logger.Error((e));
+                _logger.Error((e));
                 //throw;
             }
             
@@ -377,20 +378,20 @@ namespace WeGouSharp
                         responseText = reader.ReadToEnd();
                         if (responseText.Contains(""))
                         {
-                            _vcode_url = url;
+                            _vcodeUrl = url;
                         }
                     }
                 }
                 else
                 {
-                    logger.Error("requests status_code error" + response.StatusCode);
+                    _logger.Error("requests status_code error" + response.StatusCode);
                     throw new Exception("requests status_code error");
                 }
 
             }
             catch (Exception e)
             {
-                logger.Error(e);
+                _logger.Error(e);
             }
 
             return responseText;
@@ -492,7 +493,7 @@ namespace WeGouSharp
             }
             catch (Exception e)
             {
-                logger.Error(e);
+                _logger.Error(e);
             }
 
             return responseText;
@@ -514,7 +515,7 @@ namespace WeGouSharp
         /// <returns></returns>
         public string UnLock(bool useCloudDecode = false)
         {
-            logger.Debug("vcode appear, use UnLock()");
+            _logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
             //codeurl = 'http://weixin.sogou.com/antispider/util/seccode.php?tc=' + str(time.time())[0:10]
             HttpHelper netHelper = new HttpHelper();
@@ -548,7 +549,7 @@ namespace WeGouSharp
 
             //string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
-            var refParam = _vcode_url.Replace("http://weixin.sogou.com", "");
+            var refParam = _vcodeUrl.Replace("http://weixin.sogou.com", "");
             refParam = System.Web.HttpUtility.UrlEncode(refParam);
             string postData = $"c={verifyCode}&r={refParam}&v=5";
             // verifyCode, this._vcode_url);
@@ -556,7 +557,7 @@ namespace WeGouSharp
             Random r = new Random();
             int index = r.Next(WechatSogouBasic._agent.Count - 1);
             headers.Add("User-Agent", WechatSogouBasic._agent[index]);
-            headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + this._vcode_url.Replace("http://", ""));
+            headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + this._vcodeUrl.Replace("http://", ""));
             headers.Add("Host", "weixin.sogou.com");
             string remsg = netHelper.Post(postURL, headers, postData, true);
             JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  
@@ -565,7 +566,7 @@ namespace WeGouSharp
 
             if (statusCode != 0)
             {
-                logger.Error("cannot unblock because " + jo.GetValue("msg"));
+                _logger.Error("cannot unblock because " + jo.GetValue("msg"));
                 var vcodeException = new WechatSogouVcodeException("can not unblock");
                 vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                 throw vcodeException;
@@ -588,7 +589,7 @@ namespace WeGouSharp
         /// <comment>原_jiefeng()</comment>
         public bool UnblockFrequencyLimit(string balckUrl, bool isOCR)
         {
-            logger.Debug("vcode appear, use UnLock()");
+            _logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
             //codeurl = 'http://weixin.sogou.com/antispider/util/seccode.php?tc=' + str(time.time())[0:10]
             HttpHelper netHelper = new HttpHelper();
@@ -613,7 +614,7 @@ namespace WeGouSharp
 
             if (satuscode < 0)
             {
-                logger.Error("cannot unblock because " + jo.GetValue("msg"));
+                _logger.Error("cannot unblock because " + jo.GetValue("msg"));
                 var vcodeException = new WechatSogouVcodeException("cannot unlock");
                 vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                 throw vcodeException;
@@ -635,7 +636,7 @@ namespace WeGouSharp
         public bool VerifyCodeForContinute(string url, bool isUseOCR)
         {
             bool isSuccess = false;
-            logger.Debug("vcode appear, use VerifyCodeForContinute()");
+            _logger.Debug("vcode appear, use VerifyCodeForContinute()");
             DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
             var timeStamp17 = (DateTime.UtcNow - Epoch).TotalMilliseconds.ToString("R"); //get timestamp with 17 bit
             string codeurl = "https://mp.weixin.qq.com/mp/verifycode?cert=" + timeStamp17;
@@ -666,7 +667,7 @@ namespace WeGouSharp
                 }
                 else
                 {
-                    logger.Error("cannot unblock because " + jo.GetValue("msg"));
+                    _logger.Error("cannot unblock because " + jo.GetValue("msg"));
                     var vcodeException = new WechatSogouVcodeException("can not unlock");
                     vcodeException.MoreInfo = "cannot jiefeng because " + jo.GetValue("msg");
                     throw vcodeException;
@@ -674,7 +675,7 @@ namespace WeGouSharp
             }
             catch (Exception e)
             {
-                logger.Error(e);
+                _logger.Error(e);
             }
 
 

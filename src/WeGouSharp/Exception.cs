@@ -13,7 +13,7 @@ namespace WeGouSharp
 
 
 
- //遇到搜狗的验证码
+    //遇到搜狗的验证码
     class WechatSogouVcodeException : WechatSogouException
     {
         public WechatSogouVcodeException(string remark)
@@ -31,11 +31,10 @@ namespace WeGouSharp
             get;
             set;
         }
-        ///基于搜狗搜索的的微信公众号爬虫接口 出现验证码 异常类
     }
 
     ///验证码不通过
-    class WechatSogouVcodeFileException : WechatSogouException
+    class WechatSogouVcodeFailException : WechatSogouException
     {
 
     }
@@ -62,12 +61,6 @@ namespace WeGouSharp
     class WechatSogouBreakException : WechatSogouException
     {
         //"基于搜狗搜索的的微信公众号爬虫接口 中断 异常类
-    }
-
-
-    class WechatSogouHistoryMsgException : WechatSogouException
-    {
-        //基于搜狗搜索的的微信公众号爬虫接口 数据处理完成 异常类
     }
 
 

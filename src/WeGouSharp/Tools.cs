@@ -23,7 +23,6 @@ namespace WeGouSharp
         {
 
             var bytes = Convert.FromBase64String(base64String);
-            //totest
             //Emgucv is incompatible with dotnet core try to use OpenCVSharp
             string windowName = "Your Captcha"; //The name of the window
             Cv2.NamedWindow(windowName); //Create the window using the specific name
@@ -31,7 +30,7 @@ namespace WeGouSharp
             Cv2.Resize(matImg, matImg, new OpenCvSharp.Size(260, 84)); //the dst image size,e.g.100x100
 
             Cv2.ImShow(windowName, matImg); //Show the image
-            Cv2.WaitKey(0);  //no wait
+            Cv2.WaitKey();  //no wait time , wait unitl close
             Cv2.DestroyWindow(windowName); //Destroy the window if key is pressed
 
 
@@ -51,7 +50,7 @@ namespace WeGouSharp
                  Cv2.Resize(matImg, matImg, new OpenCvSharp.Size(260, 84)); //the dst image size,e.g.100x100
 
                  Cv2.ImShow(windowName, matImg); //Show the image
-                 Cv2.WaitKey(0);  //no wait，when value great than 0, then wait n seco
+                 Cv2.WaitKey();  //no wait，when value great than 0, then wait n seco
                  Cv2.DestroyWindow(windowName); //Destroy the window if key is pressed
              });
 
@@ -62,18 +61,18 @@ namespace WeGouSharp
 
 
         //保存验证码
-        public static bool SaveImage(string base64String, string ImgName)
+        public static bool SaveImage(string base64String, string imgName)
         {
             var path = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
             path = Path.Combine(path, "captcha");
             //Check if directory exist
-            if (!System.IO.Directory.Exists(path))
+            if (!Directory.Exists(path))
             {
-                System.IO.Directory.CreateDirectory(path); //Create directory if it doesn't exist
+                Directory.CreateDirectory(path); //Create directory if it doesn't exist
             }
 
             //set the image path
-            string imgPath = Path.Combine(path, ImgName);
+            string imgPath = Path.Combine(path, imgName);
 
             byte[] imageBytes = Convert.FromBase64String(base64String);
 
@@ -90,7 +89,7 @@ namespace WeGouSharp
         /// <param name="destPath"></param>
         public static void CopytoTrain(string srcPath, string destPath)
         {
-            FileInfo file = new FileInfo(srcPath);
+            var file = new FileInfo(srcPath);
             if (file.Exists)
             {
                 // true is overwrite
@@ -99,19 +98,25 @@ namespace WeGouSharp
         }
 
 
+        /// <summary>
+        /// 从文件缓存中加载cookie
+        /// </summary>
+        /// <returns></returns>
         public static CookieCollection LoadCookieFromCache()
         {
-            WechatCache cache = new WechatCache(Config.CacheDir, 1);
-            CookieCollection cc = cache.Get<CookieCollection>("cookieCollection");
-            if (cc == null)
-            {
-                cc = new CookieCollection();
-            }
+            var cache = new WechatCache(Config.CacheDir, 1);
+            var cc = cache.Get<CookieCollection>("cookieCollection") ?? new CookieCollection();
 
             return cc;
         }
 
 
+       /// <summary>
+       /// 尝试转换对象为为json格式
+       /// </summary>
+       /// <param name="target"></param>
+       /// <returns></returns>
+       /// <exception cref="WechatSogouJsonException"></exception>
         public static string TryParseJson(object target)
         {
             try
