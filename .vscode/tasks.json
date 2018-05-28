@@ -7,7 +7,17 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/tests/WeGouTest/WeGouTest.csproj"
+                "${workspaceFolder}/src/WeGouSharp/WeGouSharp.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build_sample_host",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/samples/HostRunner/HostRunner.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

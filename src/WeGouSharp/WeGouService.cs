@@ -13,7 +13,7 @@ namespace WeGouSharp
     public class WeGouService
     {
 
-       private readonly WechatSogouAPI _wechatSogouApi = new WechatSogouAPI();
+       private readonly WechatSogouAPI _wechatSogouApi ;//tofix null reference when new wegousercice
 
         /// <summary>
         /// 依赖服务注入
@@ -31,7 +31,8 @@ namespace WeGouSharp
                 .BuildServiceProvider();
             
             ServiceProviderAccessor.SetServiceProvider(sp);
-            
+       var lg = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+            _wechatSogouApi = new WechatSogouAPI();//only init instant after DI,for it require some service
         }
         
 
