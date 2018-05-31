@@ -12,9 +12,7 @@ namespace WeGouSharp
     //暴露给外部调用的服务类
     public class WeGouService
     {
-
-       private readonly WechatSogouAPI _wechatSogouApi ;//tofix null reference when new wegousercice
-
+    
         /// <summary>
         /// 依赖服务注入
         /// </summary>
@@ -32,7 +30,7 @@ namespace WeGouSharp
             
             ServiceProviderAccessor.SetServiceProvider(sp);
        var lg = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
-            _wechatSogouApi = new WechatSogouAPI();//only init instant after DI,for it require some service
+            //only init instant after DI,for it require some service
         }
         
 
@@ -40,14 +38,16 @@ namespace WeGouSharp
         //根据关键字搜索公众号
         public List<OfficialAccount> SearchOfficialAccount(string keyWord, int page = 1)
         {
-            var accountList = _wechatSogouApi.SearchOfficialAccount(keyWord, page);
+           var wechatSogouApi = new WechatSogouAPI();
+            var accountList = wechatSogouApi.SearchOfficialAccount(keyWord, page);
             return accountList;
         }
         
         //根据关键字搜索公众号(json)        
         public string SearchOfficialAccountSerialized(string keyWord, int page = 1)
         {
-            var accountList = _wechatSogouApi.SearchOfficialAccount(keyWord, page);
+           var wechatSogouApi = new WechatSogouAPI();            
+            var accountList = wechatSogouApi.SearchOfficialAccount(keyWord, page);
             return Tools.TryParseJson(accountList);
         }
 
@@ -55,14 +55,18 @@ namespace WeGouSharp
         //根据公众号id查询
         public OfficialAccount GetAccountInfoById(string accountId)
         {
-            var account = _wechatSogouApi.GetAccountInfoById(accountId);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var account = wechatSogouApi.GetAccountInfoById(accountId);
             return account;
         }
         
         //根据公众号id查询(json)
         public string GetAccountInfoByIdSerialized(string accountId)
         {
-            var account = _wechatSogouApi.GetAccountInfoById(accountId);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var account = wechatSogouApi.GetAccountInfoById(accountId);
             return Tools.TryParseJson(account);
         }
 
@@ -72,7 +76,8 @@ namespace WeGouSharp
         #region 文章
         public string SearchArticle(string keyWord)
         {
-            var article = _wechatSogouApi.SearchArticle(keyWord);
+           var wechatSogouApi = new WechatSogouAPI();            
+            var article = wechatSogouApi.SearchArticle(keyWord);
             return Tools.TryParseJson(article);
         }
 
@@ -80,7 +85,9 @@ namespace WeGouSharp
         //从临时文章链接提取文章正文
         public string ResolveArticleByUrl(string articleUrl)
         {
-            var article = _wechatSogouApi.ExtractArticleMain(articleUrl);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var article = wechatSogouApi.ExtractArticleMain(articleUrl);
             return article;
         }
 
@@ -88,7 +95,8 @@ namespace WeGouSharp
         //从临时文章页面的html代码中提取文章正文
         public string ResolveArticleByHtml(string articleHtml)
         {
-            var article = _wechatSogouApi.ExtractArticleMain("", articleHtml);
+           var wechatSogouApi = new WechatSogouAPI();            
+            var article = wechatSogouApi.ExtractArticleMain("", articleHtml);
             return article;
         }
 
@@ -108,7 +116,8 @@ namespace WeGouSharp
         /// <returns></returns>
         public List<BatchMessage> GetOfficialAccountMessagesByUrl(string accountPageUrl = "")
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages(accountPageUrl);
+           var wechatSogouApi = new WechatSogouAPI();            
+            var rs = wechatSogouApi.GetOfficialAccountMessages(accountPageUrl);
             return rs;
         }
        
@@ -119,7 +128,9 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesByUrlSerialized(string accountPageUrl = "")
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages(accountPageUrl);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetOfficialAccountMessages(accountPageUrl);
             return Tools.TryParseJson(rs);
         }
         
@@ -130,7 +141,9 @@ namespace WeGouSharp
         /// <returns></returns>
         public List<BatchMessage> GetOfficialAccountMessagesById(string wechatId = "")
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages("",wechatId,"");
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetOfficialAccountMessages("",wechatId,"");
             return rs;
         }
         
@@ -141,7 +154,9 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesByIdSerialized(string wechatId = "")
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages("",wechatId,"");
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetOfficialAccountMessages("",wechatId,"");
             return Tools.TryParseJson(rs);
         }
         
@@ -152,7 +167,9 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesByName(string accountName)
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages("","",accountName);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetOfficialAccountMessages("","",accountName);
             return Tools.TryParseJson(rs);
         }
         
@@ -163,7 +180,9 @@ namespace WeGouSharp
         /// <returns></returns>
         public string GetOfficialAccountMessagesByNameSerialized(string accountName)
         {
-            var rs = _wechatSogouApi.GetOfficialAccountMessages("","",accountName);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetOfficialAccountMessages("","",accountName);
             return Tools.TryParseJson(rs);
         }
         
@@ -171,54 +190,70 @@ namespace WeGouSharp
         //获取联想词汇
         public string[] GetSuggestKeyWords(string inputKeyWord)
         {
-            var rs = _wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
             return rs;
         }
         
         //获取联想词汇
         public string GetSuggestKeyWordsSerialized(string inputKeyWord)
         {
-            var rs = _wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
             return Tools.TryParseJson(rs);
         }
 
         //获取首页热搜词汇
         public List<HotWord> GetTopWords()
         {
-            var words = _wechatSogouApi.GetTopWords();
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var words = wechatSogouApi.GetTopWords();
             return words;
         }
         
         //获取首页热搜词汇
         public string GetTopWordsSerialized()
         {
-            var words = _wechatSogouApi.GetTopWords();
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var words = wechatSogouApi.GetTopWords();
             return Tools.TryParseJson(words);
         }
         
 
         public List<Article> GetArticleByCategoryIndex(int categoryIndex, int page)
         {
-            var rs = _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return rs;
         }
         
         public string GetArticleByCategoryIndexSerialized(int categoryIndex, int page)
         {
-            var rs = _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var rs = wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return Tools.TryParseJson(rs);
         }
 
 
         public List<Article> GetAllRecentArticle(uint maxPage)
         {
-            var articles = _wechatSogouApi.GetAllRecentArticle((int)maxPage);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var articles = wechatSogouApi.GetAllRecentArticle((int)maxPage);
             return articles;
         }
         
         public string GetAllRecentArticleSerialized(uint maxPage)
         {
-            var articles = _wechatSogouApi.GetAllRecentArticle((int)maxPage);
+           var wechatSogouApi = new WechatSogouAPI();
+            
+            var articles = wechatSogouApi.GetAllRecentArticle((int)maxPage);
             return Tools.TryParseJson(articles);
         }
 

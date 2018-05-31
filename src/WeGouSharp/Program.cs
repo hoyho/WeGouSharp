@@ -19,7 +19,6 @@ namespace WeGouSharp
             Console.WriteLine("Hello World! dotnet core");
             //加载log4net配置
             LoadLoggerConfig();
-            LogHelper.logger.Debug("Hello WeGouSharp");
             
             // Set up configuration sources.
             var builder = new ConfigurationBuilder()

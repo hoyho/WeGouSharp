@@ -14,10 +14,13 @@ namespace WeGouSharp
 {
     class HttpHelper
     {
-        private readonly ILog _logger = LogHelper.logger;
-        
-        string _vcodeUrl = ""; //需要填验证码的url
+        private readonly ILog _logger;
 
+        string _vcodeUrl = ""; //需要填验证码的url
+        public HttpHelper()
+        {
+            _logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+        }
 
         /// <summary>
         /// 指定header参数的HTTP Get方法
@@ -305,7 +308,7 @@ namespace WeGouSharp
                 _logger.Error((e));
                 //throw;
             }
-            
+
             return responseFromServer;
         }
 
@@ -521,7 +524,7 @@ namespace WeGouSharp
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
             var content = netHelper.Get(headers, codeurl, "", true);
-            
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Console.WriteLine("请输入验证码：   ");
@@ -539,13 +542,13 @@ namespace WeGouSharp
             if (useCloudDecode)
             {
                 var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
-                 verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
+                verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
             }
             else
             {
                 verifyCode = Console.ReadLine();
             }
-            
+
 
             //string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";

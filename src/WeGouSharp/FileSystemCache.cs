@@ -12,8 +12,6 @@ namespace WeGouSharp
     {
         readonly string _path;
         int _threshold;
-        readonly ILog _logger ;
-
         //used for temporary files by the FileSystemCache
         static string _fs_transaction_suffix = ".__wz_cache";
 
@@ -21,7 +19,6 @@ namespace WeGouSharp
         {
             _path = cacheDirectory;
             _threshold = threshold;
-            _logger = LogHelper.logger;
             if (!Directory.Exists(cacheDirectory))
             {
                 Directory.CreateDirectory(cacheDirectory);
@@ -77,7 +74,8 @@ namespace WeGouSharp
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e);
+                    var logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+                    logger.Error(e);
                     return false;
                 }
 
@@ -181,7 +179,8 @@ namespace WeGouSharp
             }
             catch (Exception e)
             {
-                _logger.Warn(e);
+                var logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+                logger.Warn(e);
             }
 
             return false;

@@ -25,12 +25,8 @@ namespace WeGouSharp
         protected WechatSogouBasic()
         {
             _weChatCache = new WechatCache(Config.CacheDir, 60 * 60);
-            _logger = LogHelper.logger;
+            _logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
             UserAgents = Config.Configuration.GetSection("UserAgent").Get<List<string>>();
-            //tofix
-            //if (weChatCache.Get<HttpWebRequest>(Config.CacheSessionName) != null)
-            //{
-            //}
         }
 
 
@@ -69,7 +65,7 @@ namespace WeGouSharp
             }
             catch (Exception ex)
             {
-                LogHelper.logger.Error(ex);
+                _logger.Error(ex);
             }
 
             return text;

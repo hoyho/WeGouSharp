@@ -17,7 +17,7 @@ namespace WeGouSharp
 
         public  WechatSogouAPI()
         {
-            _logger = LogHelper.logger;
+            _logger =  ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
         }
 
         /// <summary>
