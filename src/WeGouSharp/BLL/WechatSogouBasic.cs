@@ -42,6 +42,7 @@ namespace WeGouSharp
             string text = "";
             var headers = new WebHeaderCollection();
             var netHelper = new HttpHelper();
+            name = WebUtility.UrlEncode(name);
             string requestUrl =
                 $"http://weixin.sogou.com/weixin?query={name}&_sug_type_=&_sug_=n&type=1&page={page}&ie=utf8";
             //toconfirm if the link can not unlock for some incorrect code 
@@ -55,11 +56,13 @@ namespace WeGouSharp
                var unlockCode = netHelper.UnLock(false);
 
                 //continute request after post vcode notice ref and request url
-                var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com/", "");
+                var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com", "");
+                refParam = WebUtility.UrlDecode(refParam);//部分encode，先全部还原源字符
                 // AFTER VCODE  ,send request with unlock code by cookie          
-                refParam = "http://weixin.sogou.com/antispider/?" + System.Web.HttpUtility.UrlEncode(refParam);
+                refParam = "http://weixin.sogou.com/antispider/?from=" + System.Web.HttpUtility.UrlEncode(refParam);
 
                 headers.Add("referer", refParam);
+                headers.Add("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
                 tryTime++;
                 text = tryTime > 5 ? "" : netHelper.VcodeJump(headers, requestUrl, "", true,unlockCode);
             }

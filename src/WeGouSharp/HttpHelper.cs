@@ -520,7 +520,6 @@ namespace WeGouSharp
         {
             _logger.Debug("vcode appear, use UnLock()");
             string codeurl = "http://weixin.sogou.com/antispider/util/seccode.php?tc=" + DateTime.Now.Ticks;
-            //codeurl = 'http://weixin.sogou.com/antispider/util/seccode.php?tc=' + str(time.time())[0:10]
             HttpHelper netHelper = new HttpHelper();
             WebHeaderCollection headers = new WebHeaderCollection();
             var content = netHelper.Get(headers, codeurl, "", true);
@@ -550,17 +549,15 @@ namespace WeGouSharp
             }
 
 
-            //string verifyCode = Console.ReadLine();
             string postURL = "http://weixin.sogou.com/antispider/thank.php";
             var refParam = _vcodeUrl.Replace("http://weixin.sogou.com", "");
             refParam = System.Web.HttpUtility.UrlEncode(refParam);
             string postData = $"c={verifyCode}&r={refParam}&v=5";
-            // verifyCode, this._vcode_url);
 
             Random r = new Random();
             int index = r.Next(WechatSogouBasic.UserAgents.Count - 1);
             headers.Add("User-Agent", WechatSogouBasic.UserAgents[index]);
-            headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=%2" + this._vcodeUrl.Replace("http://", ""));
+            headers.Add("Referer", "http://weixin.sogou.com/antispider/?from=" + refParam);
             headers.Add("Host", "weixin.sogou.com");
             string remsg = netHelper.Post(postURL, headers, postData, true);
             JObject jo = JObject.Parse(remsg);//把json字符串转化为json对象  

@@ -41,7 +41,8 @@ namespace HostRunner
             
             var ws = new WeGouService(logger,configuration,yunDaMa);
 
-            
+            //var rs = ws.GetOfficialAccountMessagesByName("gzhu");
+
             var rs = ws.GetOfficialAccountMessagesByName("广州大学");
 
             Console.ReadKey();
