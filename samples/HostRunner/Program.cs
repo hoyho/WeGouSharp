@@ -38,12 +38,13 @@ namespace HostRunner
 
             var yunDaMa = new OnlineDecoder(ydmConfig);
 
-            
+            var bs = new Browser(null);
+
             var ws = new WeGouService(logger,configuration,yunDaMa);
 
             //var rs = ws.GetOfficialAccountMessagesByName("gzhu");
 
-            var rs = ws.GetOfficialAccountMessagesByName("广州大学");
+            //var rs = ws.GetOfficialAccountMessagesByName("广州大学");
 
             Console.ReadKey();
 

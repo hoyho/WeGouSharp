@@ -31,6 +31,8 @@ namespace WeGouSharp
 //            var containerBuilder = new ContainerBuilder();
 //            containerBuilder.register
             var myConf = sp.GetService<IConfiguration>();
+            ServiceProviderAccessor.SetServiceProvider(sp);
+            var bs = new Browser(null);
             //调用示例
         }
  

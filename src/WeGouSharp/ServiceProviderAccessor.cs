@@ -14,5 +14,10 @@ namespace WeGouSharp
         {
             ServiceProvider = sp;
         }
+
+        public static T ResolveService<T>() where T:class
+        {
+         return (T) ServiceProvider.GetService(typeof(T));
+        }
     }
 }
