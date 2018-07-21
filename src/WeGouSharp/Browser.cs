@@ -27,9 +27,9 @@ namespace WeGouSharp
     public class Browser
     {
 
-        //private FirefoxDriver _driver;
+        private FirefoxDriver _driver;
         //private ChromeDriver _driver;
-        private PhantomJSDriver _driver;
+        //private PhantomJSDriver _driver;
 
 
         private List<string> _tabs = new List<string>();
@@ -52,9 +52,9 @@ namespace WeGouSharp
             {
 
             };
-            //_driver = (ChromeDriver)CreateChrome(cOption);
+            _driver = (FirefoxDriver)CreateFireFoxBrowser(fxops);
             var pOpt = new PhantomJSOptions();
-            _driver = (PhantomJSDriver)CreatePhanton(pOpt);
+          //  _driver = (PhantomJSDriver)CreatePhanton(pOpt);
 
             var homeAddr = "https://www.taobao.com/";
             _driver.Navigate().GoToUrl(homeAddr);
@@ -89,10 +89,10 @@ namespace WeGouSharp
                 browserPath = _config["FireFoxPath_Windows"];
             }
             var fds = FirefoxDriverService.CreateDefaultService(geckodriverPath);
-            fds.FirefoxBinaryPath = browserPath;
+            //fds.FirefoxBinaryPath = browserPath;
             option.AddArgument("-headless");
 
-            option.SetPreference("webdriver.gecko.driver", @"/tmp/geckodriver");
+            //option.SetPreference("webdriver.gecko.driver", @"/tmp/geckodriver");
 
             driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
 

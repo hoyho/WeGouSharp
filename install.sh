@@ -1,0 +1,1 @@
+sudo apt install -f firefox -y
