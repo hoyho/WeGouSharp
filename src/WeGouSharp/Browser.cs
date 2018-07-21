@@ -21,16 +21,10 @@ using OpenQA.Selenium.Chrome;
 
 namespace WeGouSharp
 {
-
-
-
     public class Browser
     {
 
         private FirefoxDriver _driver;
-        //private ChromeDriver _driver;
-        //private PhantomJSDriver _driver;
-
 
         private List<string> _tabs = new List<string>();
 
@@ -47,35 +41,39 @@ namespace WeGouSharp
             fxProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
 
             FirefoxOptions fxops = new FirefoxOptions() { Profile = fxProfile };
+            _driver = (FirefoxDriver)LaunchFireFox(fxops);
 
-            var cOption = new ChromeOptions()
-            {
-
-            };
-            _driver = (FirefoxDriver)CreateFireFoxBrowser(fxops);
-            var pOpt = new PhantomJSOptions();
-          //  _driver = (PhantomJSDriver)CreatePhanton(pOpt);
-
-            var homeAddr = "https://www.taobao.com/";
+            var homeAddr = "http://weixin.sogou.com/antispider/?from=%2fweixin%3Ftype%3d2%26query%3d%E5%B9%BF%E5%B7%9E%E5%A4%A7%E5%AD%A6%26ie%3dutf8%26s_from%3dinput%26_sug_%3dn%26_sug_type_%3d1%26w%3d01015002%26oq%3d%26ri%3d6%26sourceid%3dsugg%26sut%3d0%26sst0%3d1532192838174%26lkt%3d0%2C0%2C0%26p%3d40040108";
             _driver.Navigate().GoToUrl(homeAddr);
 
+            var ele = _driver.FindElementById("seccodeImage");
+            var base64string = _driver.ExecuteScript(@"
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    var img = document.getElementById('seccodeImage');
+    c.height=img.height;
+    c.width=img.width;
+    ctx.drawImage(img, 0, 0,img.width, img.height);
+    var base64String = c.toDataURL();
+    return base64String;
+    ") as string;
+
+            var base64 = base64string.Split(',').Last();
             Console.WriteLine(_driver.PageSource);
-            var monitorAddr = "https://myseller.taobao.com/home.htm";
-            _driver.FindElement(By.XPath("//*[@id='J_SiteNavSeller']/div[1]/a")).SendKeys(Keys.Control + Keys.Enter);
-            Thread.Sleep(3000);
             _tabs = _driver.WindowHandles.ToList();
 
         }
 
 
 
-        public IWebDriver CreateFireFoxBrowser(FirefoxOptions option)
+        public FirefoxDriver LaunchFireFox(FirefoxOptions option)
         {
             var browserPath = "";
-            var geckodriverPath = "/tmp/";//todo
+            //folder containe geckodriver            
+            var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/";
 
-            IWebDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            FirefoxDriver driver = null;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) //linux and have desktop
             {
                 //path = _config["FireFoxPath_Linux"];
                 browserPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/firefox";
@@ -92,87 +90,34 @@ namespace WeGouSharp
             //fds.FirefoxBinaryPath = browserPath;
             option.AddArgument("-headless");
 
-            //option.SetPreference("webdriver.gecko.driver", @"/tmp/geckodriver");
-
             driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
 
             return driver;
         }
 
 
-
-        public IWebDriver CreatePhanton(PhantomJSOptions option)
-        {
-            var browserPath = "";
-            var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/phantomjs-2.1.1-linux-x86_64/";
-            //todo
-
-            IWebDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                //path = _config["FireFoxPath_Linux"];
-                browserPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/firefox";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                browserPath = _config["FireFoxPath_OSX"];
-            }
-            else
-            {
-                browserPath = _config["FireFoxPath_Windows"];
-            }
-            var pds = PhantomJSDriverService.CreateDefaultService(geckodriverPath);
-            //option.AddArgument("-headless");
-
-            driver = new PhantomJSDriver(pds, option, TimeSpan.FromMinutes(1));
-
-            return driver;
-        }
-
-        public IWebDriver CreateChrome(ChromeOptions option)
-        {
-            var browserPath = "";
-            var driverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/chromedriver_linux64";//todo
-
-            IWebDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                //path = _config["FireFoxPath_Linux"];
-                browserPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/firefox";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                browserPath = _config["FireFoxPath_OSX"];
-            }
-            else
-            {
-                browserPath = _config["FireFoxPath_Windows"];
-            }
-            var cds = ChromeDriverService.CreateDefaultService(driverPath);
-            //option.AddArgument("headless");
-
-            driver = new ChromeDriver(cds, option, TimeSpan.FromMinutes(1));
-
-            return driver;
-        }
-
-
         //输入网址返回页面内容
-        public string Get(string url)
+        public Task<string> GetAsync(string url)
         {
-            return "";
+            return Task.Run(() =>
+             {
+                 _driver.Navigate().GoToUrl(url);
+                 return _driver.PageSource;
+             });
+
         }
 
 
         //微信文章页出现的验证码
-        public Task HandleWxVcode(string url)
+        public async Task HandleWxVcodeAsync(string vCodeUrl)
         {
-            return Task.CompletedTask;
+
+            var vcodePage = await GetAsync(vCodeUrl);
         }
 
 
         //搜狗页的验证码
-        public Task HandleSogouVcode(string url)
+        public Task HandleSogouVcode(string vCodeUrl)
         {
             return Task.CompletedTask;
         }
