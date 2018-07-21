@@ -104,7 +104,7 @@ namespace WeGouSharp
         public IWebDriver CreatePhanton(PhantomJSOptions option)
         {
             var browserPath = "";
-            var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/phantomjs-2.1.1-linux-x86_64/bin";
+            var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/phantomjs-2.1.1-linux-x86_64/";
             //todo
 
             IWebDriver driver = null;
