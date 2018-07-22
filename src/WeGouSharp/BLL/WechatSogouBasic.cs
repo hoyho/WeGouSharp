@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Model;
+using System.Threading.Tasks;
 
 namespace WeGouSharp
 {
@@ -13,19 +14,20 @@ namespace WeGouSharp
     class WechatSogouBasic
     {
         private readonly ILog _logger;
-
+        Browser _browser;
         int _tryCount;
         string _vcode_url = "";
 
         readonly WechatCache _weChatCache;
-        
+
         public static List<string> UserAgents;
 
 
-        protected WechatSogouBasic()
+        protected WechatSogouBasic(ILog logger, Browser browser)
         {
             _weChatCache = new WechatCache(Config.CacheDir, 60 * 60);
-            _logger = ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+            _logger = logger;
+            _browser = browser;
             UserAgents = Config.Configuration.GetSection("UserAgent").Get<List<string>>();
         }
 
@@ -49,11 +51,11 @@ namespace WeGouSharp
 
             try
             {
-                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8",true);
+                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8", true);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-               var unlockCode = netHelper.UnLock(false);
+                var unlockCode = netHelper.UnLock(false);
 
                 //continute request after post vcode notice ref and request url
                 var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com", "");
@@ -62,9 +64,45 @@ namespace WeGouSharp
                 refParam = "http://weixin.sogou.com/antispider/?from=" + System.Web.HttpUtility.UrlEncode(refParam);
 
                 headers.Add("referer", refParam);
-                headers.Add("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+                headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
                 tryTime++;
-                text = tryTime > 5 ? "" : netHelper.VcodeJump(headers, requestUrl, "", true,unlockCode);
+                text = tryTime > 5 ? "" : netHelper.VcodeJump(headers, requestUrl, "", true, unlockCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
+            return text;
+
+        }
+
+
+
+        /// <summary>
+        /// 通过搜狗搜索指定关键字返回的文本
+        /// </summary>
+        /// <param name="name">搜索关键字</param>
+        /// <param name="page">搜索的页数</param>
+        /// <param name="tryTime"></param>
+        /// <returns>返回的html string</returns>
+        protected async Task<string> SearchAccountHtmlAsync(string name, int page = 1, int tryTime = 1)
+        {
+            string text = "";
+            name = WebUtility.UrlEncode(name);
+            string requestUrl =
+                $"http://weixin.sogou.com/weixin?query={name}&_sug_type_=&_sug_=n&type=1&page={page}&ie=utf8";
+
+            try
+            {
+                text = tryTime > 5 ? "" : await _browser.GetAsync(requestUrl);
+            }
+            catch (WechatSogouVcodeException vCodeEx)
+            {
+                await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
+                tryTime++;
+                text = tryTime > 5 ? "" : await _browser.GetAsync(requestUrl);
+
             }
             catch (Exception ex)
             {
@@ -94,7 +132,7 @@ namespace WeGouSharp
                 text = browser.Get(headers, requestUrl);
             }
             catch (Exception e) //todo should catch vcode exception
-            { 
+            {
                 if (e.Message == "weixin.sogou.com verification code")
                 {
                     browser.UnLock(false);
@@ -114,14 +152,14 @@ namespace WeGouSharp
         protected string _GetRecentArticle_Html(string url)
         {
 
-            var headers = new WebHeaderCollection {{"host", "mp.weixin.qq.com"}};
+            var headers = new WebHeaderCollection { { "host", "mp.weixin.qq.com" } };
             var netHelper = new HttpHelper();
             string text = netHelper.Get(headers, url);
             _tryCount = 1;
 
             if (!text.Contains("为了保护你的网络安全，请输入验证码") && _tryCount <= 1) return text;
-            
-            
+
+
             netHelper.VerifyCodeForContinute(url, false);
             //解封后再次请求
             text = netHelper.Get(headers, url, "UTF-8", true);
@@ -146,7 +184,7 @@ namespace WeGouSharp
         /// <returns></returns>
         protected OfficialAccount _ResolveOfficialAccount(string htmlText, string url)
         {
-            var officialAccount = new OfficialAccount {AccountPageurl = url};
+            var officialAccount = new OfficialAccount { AccountPageurl = url };
             var doc = new HtmlAgilityPack.HtmlDocument();
             doc.LoadHtml(htmlText);
             var profileInfoArea = doc.DocumentNode.SelectSingleNode("//div[@class='profile_info_area']");
@@ -256,11 +294,11 @@ namespace WeGouSharp
                             var moreMessage = new BatchMessage();
                             foreach (var jToken in multiAppMsgItemList)
                             {
-                                var subMsg = (JObject) jToken;
+                                var subMsg = (JObject)jToken;
                                 url = (string)subMsg.GetValue("content_url");
                                 if (!string.IsNullOrEmpty(url))
                                 {
-                                    if (!url.Contains("http://mp.weixin.qq.com")) 
+                                    if (!url.Contains("http://mp.weixin.qq.com"))
                                     { url = "http://mp.weixin.qq.com" + url; }
                                 }
                                 else
@@ -324,7 +362,7 @@ namespace WeGouSharp
         protected string _GetOfficialAccountArticleHtml(string url)
         {
 
-            var headers = new WebHeaderCollection {{"host", "mp.weixin.qq.com"}};
+            var headers = new WebHeaderCollection { { "host", "mp.weixin.qq.com" } };
             var netHelper = new HttpHelper();
             return netHelper.Get(headers, url);
 
@@ -341,7 +379,7 @@ namespace WeGouSharp
         protected string _GetRelatedJson(string url, string title)
         {
             string relatedReqUrl = "http://mp.weixin.qq.com/mp/getrelatedmsg?" + "url=" + url + "&title=" + title + "&uin=&key=&pass_ticket=&wxtoken=&devicetype=&clientversion=0&x5=0";
-            var headers = new WebHeaderCollection {{"Host", "mp.weixin.qq.com"}, {"Referer", url}};
+            var headers = new WebHeaderCollection { { "Host", "mp.weixin.qq.com" }, { "Referer", url } };
             var netHelper = new HttpHelper();
             var relatedText = netHelper.Get(headers, url);
             try
@@ -403,7 +441,7 @@ namespace WeGouSharp
 
             }
             return encrpt;
-           
+
         }
 
     }

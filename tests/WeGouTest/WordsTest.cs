@@ -19,7 +19,7 @@ namespace WeGouTest
         [Fact]
         public void TestGetSuggestKeyWords()
         {
-            var rs = api.GetSuggestKeyWords("广州大学城");
+            var rs =  api.GetSuggestKeyWords("广州大学城");
             Assert.True(rs.Length > 0);
         }
         

@@ -20,14 +20,14 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesById()
         {
-            var rs = _api.GetOfficialAccountMessagesById("bitsea");
+            var rs = _api.GetOfficialAccountMessagesByIdAsync("bitsea").Result;
             Assert.False(rs.FirstOrDefault().Author.Contains("和菜头"));
         }
         
         [Fact]
         public void TestGetOfficialAccountMessagesByName()
         {
-            var test = _api.GetOfficialAccountMessagesByName("和菜头");
+            var test = _api.GetOfficialAccountMessagesByNameAsync("和菜头").Result;
             var msgs = JsonConvert.DeserializeObject<List<BatchMessage>>(test);
 
         }
@@ -36,7 +36,7 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesBy()
         {
-            var rs = _api.GetOfficialAccountMessagesByUrl("");
+            var rs = _api.GetOfficialAccountMessagesByUrlAsync("");
             
             //todo
 

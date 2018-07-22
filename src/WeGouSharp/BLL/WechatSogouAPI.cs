@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using WeGouSharp.Model;
 
 namespace WeGouSharp
@@ -13,11 +14,11 @@ namespace WeGouSharp
     /// <inheritdoc />
     internal class WechatSogouAPI : WechatSogouBasic
     {
-        readonly ILog _logger ;
+        readonly ILog _logger;
 
-        public  WechatSogouAPI()
+        public WechatSogouAPI(ILog logger, Browser browser) : base(logger, browser)
         {
-            _logger =  ServiceProviderAccessor.ServiceProvider.GetService(typeof(ILog)) as ILog;
+            _logger = logger;
         }
 
         /// <summary>
@@ -26,11 +27,12 @@ namespace WeGouSharp
         /// <param name="keyword">搜索关键字</param>
         /// <param name="page">第几页</param>
         /// <returns></returns>
-        public List<OfficialAccount> SearchOfficialAccount(string keyword, int page = 1)
+        public async Task<List<OfficialAccount>> SearchOfficialAccountAsync(string keyword, int page = 1)
         {
             var accountList = new List<OfficialAccount>();
 
-            var text = this._SearchAccount_Html(keyword, page);
+            //var text = this._SearchAccount_Html(keyword, page);
+            var text = await SearchAccountHtmlAsync(keyword, page);
             var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             var targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list2']/li");
@@ -78,9 +80,9 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="wechatid"></param>
         /// <returns></returns>
-        public OfficialAccount GetAccountInfoById(string wechatid)
+        public async Task<OfficialAccount> GetAccountInfoByIdAsync(string wechatid)
         {
-            var info = SearchOfficialAccount(wechatid, 1).FirstOrDefault(); //可能为空
+            var info = (await SearchOfficialAccountAsync(wechatid, 1))?.FirstOrDefault(); //可能为空
             return info;
         }
 
@@ -215,7 +217,7 @@ namespace WeGouSharp
         /// <param name="wechatName">微信昵称(不推荐，因为不唯一)</param>
         /// <remarks> 最保险的做法是提供url或者wechatid</remarks>
         /// <returns> list of batchMessage 一定含有字段qunfa_id,datetime,type 当type不同时，含有不同的字段，具体见文档</returns>
-        public List<BatchMessage> GetOfficialAccountMessages(string accountPageUrl = "", string wechatId = "",
+        public async Task<List<BatchMessage>> GetOfficialAccountMessagesAsync(string accountPageUrl = "", string wechatId = "",
             string wechatName = "")
         {
             string htmlStr = "";
@@ -225,13 +227,13 @@ namespace WeGouSharp
             }
             else if (!string.IsNullOrEmpty(wechatId))
             {
-                var account = GetAccountInfoById(wechatId);
+                var account = await GetAccountInfoByIdAsync(wechatId);
                 accountPageUrl = account.AccountPageurl;
                 htmlStr = _GetRecentArticle_Html(accountPageUrl);
             }
             else if (!string.IsNullOrEmpty(wechatName))
             {
-                var account = GetAccountInfoById(wechatName);
+                var account = await GetAccountInfoByIdAsync(wechatName);
                 accountPageUrl = account.RecentArticleUrl;
                 htmlStr = _GetRecentArticle_Html(accountPageUrl);
             }
@@ -250,7 +252,7 @@ namespace WeGouSharp
         /// <param name="wechatName"></param>
         /// <remarks>get_gzh_message_and_info</remarks>
         /// <returns>公众号相关信息及已发消息(json)</returns>
-        public string GetOfficialAccountInfoAndMessages(string accountPageUrl = "", string wechatId = "",
+        public async Task<string> GetOfficialAccountInfoAndMessagesAsync(string accountPageUrl = "", string wechatId = "",
             string wechatName = "")
         {
             string text = "";
@@ -262,13 +264,13 @@ namespace WeGouSharp
             }
             else if (!string.IsNullOrEmpty(wechatId))
             {
-                var officialAccount = GetAccountInfoById(wechatId);
+                var officialAccount = await GetAccountInfoByIdAsync(wechatId);
                 url = officialAccount.AccountPageurl;
                 text = _GetRecentArticle_Html(url);
             }
             else if (!string.IsNullOrEmpty(wechatName))
             {
-                var officialAccount = GetAccountInfoById(wechatName);
+                var officialAccount = await GetAccountInfoByIdAsync(wechatName);
                 url = officialAccount.AccountPageurl;
                 text = _GetRecentArticle_Html(url);
             }
@@ -282,7 +284,7 @@ namespace WeGouSharp
                     OfficialAccount = _ResolveOfficialAccount(text, url),
                     Message = _ResolveBatchMessageFromJson(_ExtracJson(text), encryp)
                 }
-                , 
+                ,
                 Newtonsoft.Json.Formatting.Indented
             );
             return json;
@@ -308,9 +310,9 @@ namespace WeGouSharp
             }
             else
             {
-                throw  new WechatSogouException()
+                throw new WechatSogouException()
                 {
-                   Source = "ExtractArticleMain parameter should not be null"
+                    Source = "ExtractArticleMain parameter should not be null"
                 };
             }
 
@@ -371,7 +373,7 @@ namespace WeGouSharp
 
 
             var reg = new Regex("window.sg_data={(.*?)}");
-            var match = reg.Match(articlePageHtml??"");
+            var match = reg.Match(articlePageHtml ?? "");
             string sgData = match.Groups[0].Value;
             sgData = "{" + sgData.Replace("\r\n", "").Replace(" ", "") + "}";
 
@@ -385,18 +387,18 @@ namespace WeGouSharp
             var headers = new WebHeaderCollection();
             headers.Add("host", "mp.weixin.qq.com");
             headers.Add("referer", "http://mp.weixin.qq.com");
-            
+
             var netHelper = new HttpHelper();
             string commentText = netHelper.Get(headers, commentReqUrl);
             JObject commentJson = new JObject();
             try
             {
                 commentJson = JObject.Parse(commentText);
-                int ret = (int) commentJson.SelectToken("base_resp.ret");
+                int ret = (int)commentJson.SelectToken("base_resp.ret");
                 string errorMsg = "";
                 if (commentJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errorMsg = (string) commentJson.SelectToken("base_resp.errmsg");
+                    errorMsg = (string)commentJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
@@ -522,7 +524,7 @@ namespace WeGouSharp
             var headers =
                 new WebHeaderCollection
                 {
-                    {"Host", "weixin.sogou.com"}, 
+                    {"Host", "weixin.sogou.com"},
                     {"Referer", "http://weixin.sogou.com/"}
                 };
             var netHelper = new HttpHelper();
@@ -601,7 +603,7 @@ namespace WeGouSharp
 
             foreach (var li in targetArea)
             {
-                var article = new Article() {Imgs = new List<string>()};
+                var article = new Article() { Imgs = new List<string>() };
                 var account = new OfficialAccount();
                 try
                 {
@@ -663,6 +665,6 @@ namespace WeGouSharp
             return listArticles;
         }
 
-       
+
     }
 }

@@ -4,7 +4,8 @@ using System.Reflection;
 using log4net;
 using log4net.Config;
 using Microsoft.Extensions.Configuration;
-using  WeGouSharp;
+using Microsoft.Extensions.DependencyInjection;
+using WeGouSharp;
 using WeGouSharp.Model;
 using WeGouSharp.YunDaMa;
 
@@ -15,32 +16,44 @@ namespace HostRunner
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            
-            
+
+
             //init logger
             var configFile = new FileInfo("log4net.config");
             var repo = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.ConfigureAndWatch(repo, configFile);
-            
-            
+
             // //创建logger
             var logger = LogManager.GetLogger(typeof(Program));
-            
+
             // Set up configuration sources.
-            var builder = new ConfigurationBuilder()
+            var cfBuilder = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(AppContext.BaseDirectory))
-                .AddJsonFile("appsettings.json",false);
-            
-            IConfiguration configuration = builder.Build();
+                .AddJsonFile("appsettings.json", false);
+            var config = cfBuilder.Build();
+
+            var sp = new ServiceCollection()
+            .AddSingleton<IConfiguration>(config)
+            .AddSingleton<ILog>(logger)
+            .AddSingleton<YunDaMaConfig>(config.GetSection("YunDaMa").Get<YunDaMaConfig>())
+            .AddScoped<IDecode, OnlineDecoder>()
+            .AddScoped<WeGouService, WeGouService>()
+            .AddSingleton<Browser, Browser>()
+            .BuildServiceProvider();
+
+            ServiceProviderAccessor.SetServiceProvider(sp);
 
 
-            var ydmConfig = configuration.GetSection("YunDaMa").Get<YunDaMaConfig>();
+
+            var ydmConfig = config.GetSection("YunDaMa").Get<YunDaMaConfig>();
 
             var yunDaMa = new OnlineDecoder(ydmConfig);
 
-            var bs = new Browser(null);
+             var ApiService = new WeGouService();
 
-            var ws = new WeGouService(logger,configuration,yunDaMa);
+            var bs = ServiceProviderAccessor.ResolveService<Browser>();
+
+            //var ws = new WeGouService(logger,configuration,yunDaMa);
 
             //var rs = ws.GetOfficialAccountMessagesByName("gzhu");
 

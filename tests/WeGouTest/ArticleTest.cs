@@ -19,6 +19,7 @@ namespace WeGouTest
         public void TestSearchArticle()
         {
             var rs = api.SearchArticle("广州大学城");
+                
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }

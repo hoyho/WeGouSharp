@@ -18,6 +18,7 @@ using System.Threading;
 using WeGouSharp.Model.OS;
 using Microsoft.Extensions.Configuration;
 using OpenQA.Selenium.Chrome;
+using log4net.Core;
 
 namespace WeGouSharp
 {
@@ -31,34 +32,22 @@ namespace WeGouSharp
         IConfiguration _config;
 
         ILog _logger;
-        public Browser(ILog logger)
+        public Browser(ILog logger, IConfiguration config)
         {
             _logger = logger;
+            _config = config;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            FirefoxProfile fxProfile = new FirefoxProfile();
-            fxProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
-            fxProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
+            FirefoxProfile ffProfile = new FirefoxProfile();
+            ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
+            ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
 
-            FirefoxOptions fxops = new FirefoxOptions() { Profile = fxProfile };
-            _driver = (FirefoxDriver)LaunchFireFox(fxops);
+            FirefoxOptions ffopt = new FirefoxOptions() { Profile = ffProfile };
+            _driver = (FirefoxDriver)LaunchFireFox(ffopt);
 
-            var homeAddr = "http://weixin.sogou.com/antispider/?from=%2fweixin%3Ftype%3d2%26query%3d%E5%B9%BF%E5%B7%9E%E5%A4%A7%E5%AD%A6%26ie%3dutf8%26s_from%3dinput%26_sug_%3dn%26_sug_type_%3d1%26w%3d01015002%26oq%3d%26ri%3d6%26sourceid%3dsugg%26sut%3d0%26sst0%3d1532192838174%26lkt%3d0%2C0%2C0%26p%3d40040108";
+            var homeAddr = "http://weixin.sogou.com/";
             _driver.Navigate().GoToUrl(homeAddr);
 
-            var ele = _driver.FindElementById("seccodeImage");
-            var base64string = _driver.ExecuteScript(@"
-    var c = document.createElement('canvas');
-    var ctx = c.getContext('2d');
-    var img = document.getElementById('seccodeImage');
-    c.height=img.height;
-    c.width=img.width;
-    ctx.drawImage(img, 0, 0,img.width, img.height);
-    var base64String = c.toDataURL();
-    return base64String;
-    ") as string;
-
-            var base64 = base64string.Split(',').Last();
             Console.WriteLine(_driver.PageSource);
             _tabs = _driver.WindowHandles.ToList();
 
@@ -102,6 +91,15 @@ namespace WeGouSharp
             return Task.Run(() =>
              {
                  _driver.Navigate().GoToUrl(url);
+                 var pageSrc = _driver.PageSource;
+                 if (pageSrc.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
+                 {
+
+                     throw new WechatSogouVcodeException("vcode")
+                     {
+                         VisittingUrl = _driver.Url
+                     };
+                 }
                  return _driver.PageSource;
              });
 
@@ -109,10 +107,53 @@ namespace WeGouSharp
 
 
         //微信文章页出现的验证码
-        public async Task HandleWxVcodeAsync(string vCodeUrl)
+        public async Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
         {
 
             var vcodePage = await GetAsync(vCodeUrl);
+
+            var base64Img = _driver.ExecuteScript(@"
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    var img = document.getElementById('seccodeImage');
+    c.height=img.height;
+    c.width=img.width;
+    ctx.drawImage(img, 0, 0,img.width, img.height);
+    var base64String = c.toDataURL();
+    return base64String;
+    ") as string;
+
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WriteLine("请输入验证码：   ");
+                await DisplayImageFromBase64Async(base64Img);
+            }
+            else
+            {
+                Console.WriteLine(@"your system is not support showing image in console, please open captcha from ./captcha/vcode");
+                Tools.SaveImage(base64Img, "vcode.jpg");
+                Console.WriteLine("请输入验证码：");
+            }
+
+            var verifyCode = "";
+            if (useCloudDecode)
+            {
+                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
+                verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
+            }
+            else
+            {
+                verifyCode = Console.ReadLine();
+            }
+
+
+            var codeInput = _driver.FindElementById("seccodeInput");
+            codeInput.SendKeys(verifyCode);
+
+            _driver.FindElementById("submit").Click();
+
+
         }
 
 
