@@ -32,52 +32,6 @@ namespace WeGouSharp
         }
 
 
-        /// <summary>
-        /// 通过搜狗搜索指定关键字返回的文本
-        /// </summary>
-        /// <param name="name">搜索关键字</param>
-        /// <param name="page">搜索的页数</param>
-        /// <param name="tryTime"></param>
-        /// <returns>返回的html string</returns>
-        protected string _SearchAccount_Html(string name, int page = 1, int tryTime = 1)
-        {
-            string text = "";
-            var headers = new WebHeaderCollection();
-            var netHelper = new HttpHelper();
-            name = WebUtility.UrlEncode(name);
-            string requestUrl =
-                $"http://weixin.sogou.com/weixin?query={name}&_sug_type_=&_sug_=n&type=1&page={page}&ie=utf8";
-            //toconfirm if the link can not unlock for some incorrect code 
-
-            try
-            {
-                text = tryTime > 5 ? "" : netHelper.Get(headers, requestUrl, "utf-8", true);
-            }
-            catch (WechatSogouVcodeException vCodeEx)
-            {
-                var unlockCode = netHelper.UnLock(false);
-
-                //continute request after post vcode notice ref and request url
-                var refParam = vCodeEx.VisittingUrl.Replace("http://weixin.sogou.com", "");
-                refParam = WebUtility.UrlDecode(refParam);//部分encode，先全部还原源字符
-                // AFTER VCODE  ,send request with unlock code by cookie          
-                refParam = "http://weixin.sogou.com/antispider/?from=" + System.Web.HttpUtility.UrlEncode(refParam);
-
-                headers.Add("referer", refParam);
-                headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-                tryTime++;
-                text = tryTime > 5 ? "" : netHelper.VcodeJump(headers, requestUrl, "", true, unlockCode);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex);
-            }
-
-            return text;
-
-        }
-
-
 
         /// <summary>
         /// 通过搜狗搜索指定关键字返回的文本
@@ -111,36 +65,6 @@ namespace WeGouSharp
 
             return text;
 
-        }
-
-
-        /// <summary>
-        /// 通过搜狗搜索微信文章关键字返回纯html字符串
-        /// </summary>
-        /// <param name="name">搜索文章关键字</param>
-        /// <param name="page">搜索的页数</param>
-        /// <returns>HTML string</returns>
-        protected string _SearchArticle_Html(string name, int page)
-        {
-            string requestUrl = "http://weixin.sogou.com/weixin?query=" + name + "&_sug_type_=&_sug_=n&type=2&page=" + page + "&ie=utf8";
-            string text = "";
-            var browser = new HttpHelper();
-            HttpHelper netHelper = new HttpHelper();
-            var headers = new WebHeaderCollection();
-            try
-            {
-                text = browser.Get(headers, requestUrl);
-            }
-            catch (Exception e) //todo should catch vcode exception
-            {
-                if (e.Message == "weixin.sogou.com verification code")
-                {
-                    browser.UnLock(false);
-                    headers.Add("referer", "http://weixin.sogou.com/antispider/?from=%2f" + this._vcode_url.Replace("http://", ""));
-                    text = netHelper.Get(headers, requestUrl);
-                }
-            }
-            return text;
         }
 
 

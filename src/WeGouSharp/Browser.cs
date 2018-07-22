@@ -62,18 +62,19 @@ namespace WeGouSharp
             var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/";
 
             FirefoxDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) //linux and have desktop
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && IsRunWithXServer()) //linux and have desktop
             {
-                //path = _config["FireFoxPath_Linux"];
-                browserPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/firefox";
+                geckodriverPath = "Resource/firefox_linux/";
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 browserPath = _config["FireFoxPath_OSX"];
             }
-            else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                browserPath = _config["FireFoxPath_Windows"];
+                geckodriverPath = "";
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_windows/firefox.exe");
             }
             var fds = FirefoxDriverService.CreateDefaultService(geckodriverPath);
             //fds.FirefoxBinaryPath = browserPath;
@@ -161,6 +162,23 @@ namespace WeGouSharp
         public Task HandleSogouVcode(string vCodeUrl)
         {
             return Task.CompletedTask;
+        }
+
+
+        private bool IsRunWithXServer()
+        {
+            var cmd = @"
+            if xhost >& /dev/null ; 
+            then echo 'True'
+            else echo 'False' ;
+            fi";
+            var rs = cmd.RunAsShell().Replace("\n","");
+
+            if (rs.Trim().ToLower() == "true")
+            {
+                return true;
+            }
+            else { return false; }
         }
 
     }
