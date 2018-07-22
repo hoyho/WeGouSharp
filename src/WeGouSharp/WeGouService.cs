@@ -59,9 +59,9 @@ namespace WeGouSharp
 
 
         #region 文章
-        public string SearchArticle(string keyWord)
+        public async Task<string> SearchArticleAsync(string keyWord)
         {
-            var article = _wechatSogouApi.SearchArticle(keyWord);
+            var article =await _wechatSogouApi.SearchArticleAsync(keyWord);
             return Tools.TryParseJson(article);
         }
 

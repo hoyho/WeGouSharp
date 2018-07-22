@@ -18,12 +18,12 @@ namespace WeGouTest
         [Fact]
         public void TestSearchArticle()
         {
-            var rs = api.SearchArticle("广州大学城");
-                
+            var rs =  api.SearchArticleAsync("广州大学城").Result;
+
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
-        
+
         [Fact]
         public void TestResolveArticleByUrl()
         {
@@ -31,8 +31,8 @@ namespace WeGouTest
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
-        
-        
+
+
         [Fact]
         public void TestResolveArticleByHtml()
         {
@@ -40,22 +40,22 @@ namespace WeGouTest
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
-        
-        
+
+
         [Fact]
         public void TestGetArticleByCategoryIndex()
         {
-            var rs = api.GetArticleByCategoryIndex(1,2);
+            var rs = api.GetArticleByCategoryIndex(1, 2);
         }
-        
-        
+
+
         [Fact]
         public void TestGetAllRecentArticle()
         {
             var rs = api.GetAllRecentArticle(1);
         }
-        
-        
-        
+
+
+
     }
 }

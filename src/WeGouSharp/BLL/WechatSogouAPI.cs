@@ -93,10 +93,11 @@ namespace WeGouSharp
         /// <param name="keyword"></param>
         /// <param name="page"></param>
         /// <returns></returns>
-        public List<Article> SearchArticle(string keyword, int page = 1)
+        public async Task<List<Article>> SearchArticleAsync(string keyword, int page = 1)
         {
             var articleList = new List<Article>();
-            string text = this._SearchArticle_Html(keyword, page);
+            //string text = this._SearchArticle_Html(keyword, page);
+            string text = await SearchArticleHtmlAsync(keyword,page);
             var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             //todo

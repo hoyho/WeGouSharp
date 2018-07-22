@@ -145,6 +145,35 @@ namespace WeGouSharp
 
 
         /// <summary>
+        /// 通过搜狗搜索微信文章关键字返回纯html字符串
+        /// </summary>
+        /// <param name="name">搜索文章关键字</param>
+        /// <param name="page">搜索的页数</param>
+        /// <returns>HTML string</returns>
+        protected async Task<string> SearchArticleHtmlAsync(string name, int page)
+        {
+            string requestUrl = "http://weixin.sogou.com/weixin?query=" + name + "&_sug_type_=&_sug_=n&type=2&page=" + page + "&ie=utf8";
+            string text = "";
+            try
+            {
+                text = await _browser.GetAsync(requestUrl);
+            }
+            catch (WechatSogouVcodeException vCodeEx)
+            {
+                await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
+               
+                await _browser.GetAsync(requestUrl);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+            return text;
+        }
+
+
+        /// <summary>
         /// 获取最近文章页的文本
         /// </summary>
         /// <param name="url">最近文章页地址</param>
