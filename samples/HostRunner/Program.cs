@@ -49,10 +49,13 @@ namespace HostRunner
 
             var yunDaMa = new OnlineDecoder(ydmConfig);
 
-             var ApiService = new WeGouService();
+             var apiService = new WeGouService();
 
             var bs = ServiceProviderAccessor.ResolveService<Browser>();
 
+            var rs = apiService.GetAccountInfoByIdAsync("bitsea").Result;
+
+            var rss = apiService.GetAccountInfoByIdSerializedAsync("taosay").Result;
             //var ws = new WeGouService(logger,configuration,yunDaMa);
 
             //var rs = ws.GetOfficialAccountMessagesByName("gzhu");

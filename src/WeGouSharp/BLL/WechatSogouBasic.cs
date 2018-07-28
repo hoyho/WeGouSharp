@@ -49,13 +49,13 @@ namespace WeGouSharp
 
             try
             {
-                text = tryTime > 5 ? "" : await _browser.GetAsync(requestUrl);
+                text = tryTime > 5 ? "" : await _browser.GetWithoutVcodeAsync(requestUrl);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
                 await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
                 tryTime++;
-                text = tryTime > 5 ? "" : await _browser.GetAsync(requestUrl);
+                text = tryTime > 5 ? "" : await _browser.GetWithoutVcodeAsync(requestUrl);
 
             }
             catch (Exception ex)
@@ -80,13 +80,13 @@ namespace WeGouSharp
             string text = "";
             try
             {
-                text = await _browser.GetAsync(requestUrl);
+                text = await _browser.GetWithoutVcodeAsync(requestUrl);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
                 await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
                
-                await _browser.GetAsync(requestUrl);
+                await _browser.GetWithoutVcodeAsync(requestUrl);
 
             }
             catch (Exception ex)

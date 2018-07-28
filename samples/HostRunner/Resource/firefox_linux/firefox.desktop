@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Firefox
+Exec=/home/hoyho/program/firefox/firefox
+Terminal=false
+Type=Application
+Icon=/home/hoyho/program/firefox/icons/icon.png
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=Firefox-esr
+StartupNotify=true
+

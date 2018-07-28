@@ -24,7 +24,6 @@ namespace WeGouSharp
 {
     public class Browser
     {
-
         private FirefoxDriver _driver;
 
         private List<string> _tabs = new List<string>();
@@ -32,6 +31,7 @@ namespace WeGouSharp
         IConfiguration _config;
 
         ILog _logger;
+
         public Browser(ILog logger, IConfiguration config)
         {
             _logger = logger;
@@ -42,17 +42,15 @@ namespace WeGouSharp
             ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
             ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
 
-            FirefoxOptions ffopt = new FirefoxOptions() { Profile = ffProfile };
-            _driver = (FirefoxDriver)LaunchFireFox(ffopt);
+            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile};
+            _driver = (FirefoxDriver) LaunchFireFox(ffopt);
 
             var homeAddr = "http://weixin.sogou.com/";
             _driver.Navigate().GoToUrl(homeAddr);
 
             Console.WriteLine(_driver.PageSource);
             _tabs = _driver.WindowHandles.ToList();
-
         }
-
 
 
         public FirefoxDriver LaunchFireFox(FirefoxOptions option)
@@ -74,8 +72,10 @@ namespace WeGouSharp
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 geckodriverPath = "";
-                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_windows/firefox.exe");
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                    "Resource/firefox_windows/firefox.exe");
             }
+
             var fds = FirefoxDriverService.CreateDefaultService(geckodriverPath);
             //fds.FirefoxBinaryPath = browserPath;
             option.AddArgument("-headless");
@@ -86,32 +86,56 @@ namespace WeGouSharp
         }
 
 
-        //输入网址返回页面内容
-        public Task<string> GetAsync(string url)
+        /// <summary>
+        /// 输入网址返回页面内容,如果有验证码则抛出异常
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        /// <exception cref="WechatSogouVcodeException"></exception>
+        public Task<string> GetWithoutVcodeAsync(string url)
         {
             return Task.Run(() =>
-             {
-                 _driver.Navigate().GoToUrl(url);
-                 var pageSrc = _driver.PageSource;
-                 if (pageSrc.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
-                 {
+            {
+                _driver.Navigate().GoToUrl(url);
+                var pageSrc = _driver.PageSource;
+                if (pageSrc.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
+                {
+                    throw new WechatSogouVcodeException("vcode")
+                    {
+                        VisittingUrl = _driver.Url
+                    };
+                }
 
-                     throw new WechatSogouVcodeException("vcode")
-                     {
-                         VisittingUrl = _driver.Url
-                     };
-                 }
-                 return _driver.PageSource;
-             });
+                return _driver.PageSource;
+            });
+        }
 
+        /// <summary>
+        /// 输入网址返回页面内容,即使包含验证码
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public Task<string> GetPageAsync(string url)
+        {
+            return Task.Run(() =>
+            {
+                _driver.Navigate().GoToUrl(url);
+                return _driver.PageSource;
+            });
         }
 
 
         //微信文章页出现的验证码
         public async Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
         {
+            return;
+        }
 
-            var vcodePage = await GetAsync(vCodeUrl);
+
+        //搜狗页的验证码
+        public async Task HandleSogouVcode(string vCodeUrl, bool useCloudDecode = false)
+        {
+            var vcodePage = await GetPageAsync(vCodeUrl);
 
             var base64Img = _driver.ExecuteScript(@"
     var c = document.createElement('canvas');
@@ -124,6 +148,8 @@ namespace WeGouSharp
     return base64String;
     ") as string;
 
+            base64Img = base64Img.Replace("data:image/png;base64,", "");
+
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -132,7 +158,8 @@ namespace WeGouSharp
             }
             else
             {
-                Console.WriteLine(@"your system is not support showing image in console, please open captcha from ./captcha/vcode");
+                Console.WriteLine(
+                    @"your system is not support showing image in console, please open captcha from ./captcha/vcode");
                 Tools.SaveImage(base64Img, "vcode.jpg");
                 Console.WriteLine("请输入验证码：");
             }
@@ -153,15 +180,6 @@ namespace WeGouSharp
             codeInput.SendKeys(verifyCode);
 
             _driver.FindElementById("submit").Click();
-
-
-        }
-
-
-        //搜狗页的验证码
-        public Task HandleSogouVcode(string vCodeUrl)
-        {
-            return Task.CompletedTask;
         }
 
 
@@ -172,14 +190,16 @@ namespace WeGouSharp
             then echo 'True'
             else echo 'False' ;
             fi";
-            var rs = cmd.RunAsShell().Replace("\n","");
+            var rs = cmd.RunAsShell().Replace("\n", "");
 
             if (rs.Trim().ToLower() == "true")
             {
                 return true;
             }
-            else { return false; }
+            else
+            {
+                return false;
+            }
         }
-
     }
 }
