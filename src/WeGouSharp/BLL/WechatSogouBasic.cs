@@ -7,16 +7,15 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Model;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 
 namespace WeGouSharp
 {
-
     class WechatSogouBasic
     {
         private readonly ILog _logger;
-        Browser _browser;
-        int _tryCount;
-        string _vcode_url = "";
+        private readonly Browser _browser;
+        private int _tryCount;
 
         readonly WechatCache _weChatCache;
 
@@ -30,7 +29,6 @@ namespace WeGouSharp
             _browser = browser;
             UserAgents = Config.Configuration.GetSection("UserAgent").Get<List<string>>();
         }
-
 
 
         /// <summary>
@@ -49,14 +47,13 @@ namespace WeGouSharp
 
             try
             {
-                text = tryTime > 5 ? "" : await _browser.GetWithoutVcodeAsync(requestUrl);
+                text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-                await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl);
                 tryTime++;
-                text = tryTime > 5 ? "" : await _browser.GetWithoutVcodeAsync(requestUrl);
-
+                text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
             catch (Exception ex)
             {
@@ -64,7 +61,6 @@ namespace WeGouSharp
             }
 
             return text;
-
         }
 
 
@@ -76,23 +72,24 @@ namespace WeGouSharp
         /// <returns>HTML string</returns>
         protected async Task<string> SearchArticleHtmlAsync(string name, int page)
         {
-            string requestUrl = "http://weixin.sogou.com/weixin?query=" + name + "&_sug_type_=&_sug_=n&type=2&page=" + page + "&ie=utf8";
+            string requestUrl = "http://weixin.sogou.com/weixin?query=" + name + "&_sug_type_=&_sug_=n&type=2&page=" +
+                                page + "&ie=utf8";
             string text = "";
             try
             {
-                text = await _browser.GetWithoutVcodeAsync(requestUrl);
+                text = await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-                await _browser.HandleSogouVcode(vCodeEx.VisittingUrl);
-               
-                await _browser.GetWithoutVcodeAsync(requestUrl);
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl);
 
+                await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
             catch (Exception ex)
             {
                 _logger.Error(ex);
             }
+
             return text;
         }
 
@@ -102,29 +99,31 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="url">最近文章页地址</param>
         /// <returns></returns>
-        protected string _GetRecentArticle_Html(string url)
+        protected async Task<string> _GetRecentArticle_Html(string url)
         {
-
-            var headers = new WebHeaderCollection { { "host", "mp.weixin.qq.com" } };
-            var netHelper = new HttpHelper();
-            string text = netHelper.Get(headers, url);
-            _tryCount = 1;
-
-            if (!text.Contains("为了保护你的网络安全，请输入验证码") && _tryCount <= 1) return text;
-
-
-            netHelper.VerifyCodeForContinute(url, false);
-            //解封后再次请求
-            text = netHelper.Get(headers, url, "UTF-8", true);
-            if (text.Contains("验证码有误"))
+            string text = "";
+            try
             {
-                Console.WriteLine("验证时输入错误");
-                if (_tryCount > 1)
-                {
-                    throw new WechatSogouVcodeFailException($"验证码识别错误 url:{url}");
-                }
+                text = await _browser.GetPageWithoutVcodeAsync(url);
+                _tryCount = 1;
+
+                if (!text.Contains("为了保护你的网络安全，请输入验证码") && _tryCount <= 1) return text;
             }
-            _GetRecentArticle_Html(url);
+            catch (WechatSogouVcodeException ve)
+            {
+                Console.WriteLine(ve.ToString());
+
+                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl))
+                {
+                }
+
+                text = await _browser.GetPageWithoutVcodeAsync(url);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+
             return text;
         }
 
@@ -137,11 +136,12 @@ namespace WeGouSharp
         /// <returns></returns>
         protected OfficialAccount _ResolveOfficialAccount(string htmlText, string url)
         {
-            var officialAccount = new OfficialAccount { AccountPageurl = url };
-            var doc = new HtmlAgilityPack.HtmlDocument();
+            var officialAccount = new OfficialAccount {AccountPageurl = url};
+            var doc = new HtmlDocument();
             doc.LoadHtml(htmlText);
             var profileInfoArea = doc.DocumentNode.SelectSingleNode("//div[@class='profile_info_area']");
-            officialAccount.ProfilePicture = profileInfoArea.SelectSingleNode("div[1]/span/img").GetAttributeValue("src", "");
+            officialAccount.ProfilePicture =
+                profileInfoArea.SelectSingleNode("div[1]/span/img").GetAttributeValue("src", "");
             officialAccount.Name = profileInfoArea.SelectSingleNode("div[1]/div/strong/text()").InnerText.Trim();
             string wechatId = profileInfoArea.SelectSingleNode("div[1]/div/p/text()").InnerText.Trim();
             wechatId = wechatId.Length > 0 ? wechatId.Replace("微信号: ", "") : "";
@@ -152,15 +152,14 @@ namespace WeGouSharp
 
             officialAccount.IsAuth = !string.IsNullOrEmpty(authInfo);
 
-            string qrcode = WebUtility.HtmlDecode(doc.DocumentNode.SelectSingleNode("//*[@id='js_pc_qr_code_img']").GetAttributeValue("src", ""));
+            string qrcode = WebUtility.HtmlDecode(doc.DocumentNode.SelectSingleNode("//*[@id='js_pc_qr_code_img']")
+                .GetAttributeValue("src", ""));
 
             qrcode = qrcode.Length > 0 ? "http://mp.weixin.qq.com" + qrcode : "";
 
             officialAccount.QrCode = qrcode;
             return officialAccount;
-
         }
-
 
 
         /// <summary>
@@ -171,10 +170,9 @@ namespace WeGouSharp
         /// <returns>list of BatchMessage</returns>
         protected string _ExtracJson(string text)
         {
-            string msglist = "";
             var reg = new Regex("var msgList =(.+?)};");
             var match = reg.Match(text);
-            msglist = match.Groups[1].Value;
+            var msglist = match.Groups[1].Value;
 
             msglist = msglist + "}";
             var msgdict = WebUtility.HtmlDecode(msglist);
@@ -195,91 +193,98 @@ namespace WeGouSharp
             string uin = encryp.uin;
             string key = encryp.key;
 
-            JObject jo = JObject.Parse(jsonText);//把json字符串转化为json对象  
-            JArray msgList = (JArray)jo.GetValue("list");
-            foreach (JObject msg in msgList)
+            JObject jo = JObject.Parse(jsonText); //把json字符串转化为json对象  
+            JArray msgList = (JArray) jo.GetValue("list");
+            foreach (var jToken1 in msgList)
             {
-
+                var msg = (JObject) jToken1;
                 BatchMessage aMessage = new BatchMessage();
-                JObject commMsgInfo = (JObject)msg.GetValue("comm_msg_info");
-                aMessage.Meaasgeid = (int)commMsgInfo.GetValue("id");
-                aMessage.SendDate = (string)commMsgInfo.GetValue("datetime");
-                aMessage.Type = (string)commMsgInfo.GetValue("type");
+                JObject commMsgInfo = (JObject) msg.GetValue("comm_msg_info");
+                aMessage.Meaasgeid = (int) commMsgInfo.GetValue("id");
+                aMessage.SendDate = (string) commMsgInfo.GetValue("datetime");
+                aMessage.Type = (string) commMsgInfo.GetValue("type");
                 switch (aMessage.Type)
                 {
                     case "1": //文字
-                        aMessage.Content = (string)commMsgInfo.GetValue("");
+                        aMessage.Content = (string) commMsgInfo.GetValue("");
                         break;
                     case "3": //图片
-                        aMessage.ImageUrl = "https://mp.weixin.qq.com/mp/getmediadata?__biz=" + biz + "&type=img&mode=small&msgid=" + aMessage.Meaasgeid + "&uin=" + uin + "&key=" + key;
+                        aMessage.ImageUrl = "https://mp.weixin.qq.com/mp/getmediadata?__biz=" + biz +
+                                            "&type=img&mode=small&msgid=" + aMessage.Meaasgeid + "&uin=" + uin +
+                                            "&key=" + key;
                         break;
                     case "34": //音频
-                        aMessage.PlayLength = (string)msg.SelectToken("voice_msg_ext_info.play_length");
-                        aMessage.FileId = (int)msg.SelectToken("voice_msg_ext_info.fileid");
-                        aMessage.AudioSrc = "https://mp.weixin.qq.com/mp/getmediadata?biz=" + biz + "&type=voice&msgid=" + aMessage.Meaasgeid + "&uin=" + uin + "&key=" + key;
+                        aMessage.PlayLength = (string) msg.SelectToken("voice_msg_ext_info.play_length");
+                        aMessage.FileId = (int) msg.SelectToken("voice_msg_ext_info.fileid");
+                        aMessage.AudioSrc = "https://mp.weixin.qq.com/mp/getmediadata?biz=" + biz +
+                                            "&type=voice&msgid=" + aMessage.Meaasgeid + "&uin=" + uin + "&key=" + key;
                         break;
                     case "49": //图文
-                        JObject appMsgExtInfo = (JObject)msg.GetValue("app_msg_ext_info");
-                        string url = (string)appMsgExtInfo.GetValue("content_url");
+                        JObject appMsgExtInfo = (JObject) msg.GetValue("app_msg_ext_info");
+                        string url = (string) appMsgExtInfo.GetValue("content_url");
                         if (!String.IsNullOrEmpty(url))
                         {
-                            if (!url.Contains("http://mp.weixin.qq.com")) { url = "http://mp.weixin.qq.com" + url; }
-
+                            if (!url.Contains("http://mp.weixin.qq.com"))
+                            {
+                                url = "http://mp.weixin.qq.com" + url;
+                            }
                         }
                         else
                         {
                             url = "";
                         }
+
                         aMessage.Main = 1;
-                        aMessage.Title = (string)appMsgExtInfo.GetValue("title");
-                        aMessage.Digest = (string)appMsgExtInfo.GetValue("digest");
-                        aMessage.FileId = (int)appMsgExtInfo.GetValue("fileid");
+                        aMessage.Title = (string) appMsgExtInfo.GetValue("title");
+                        aMessage.Digest = (string) appMsgExtInfo.GetValue("digest");
+                        aMessage.FileId = (int) appMsgExtInfo.GetValue("fileid");
                         aMessage.ContentUrl = url;
-                        aMessage.SourceUrl = (string)appMsgExtInfo.GetValue("source_url");
-                        aMessage.Cover = (string)appMsgExtInfo.GetValue("cover");
-                        aMessage.Author = (string)appMsgExtInfo.GetValue("author");
-                        aMessage.CopyrightStat = (string)appMsgExtInfo.GetValue("copyright_stat");
+                        aMessage.SourceUrl = (string) appMsgExtInfo.GetValue("source_url");
+                        aMessage.Cover = (string) appMsgExtInfo.GetValue("cover");
+                        aMessage.Author = (string) appMsgExtInfo.GetValue("author");
+                        aMessage.CopyrightStat = (string) appMsgExtInfo.GetValue("copyright_stat");
                         messages.Add(aMessage);
 
-                        if ((int)appMsgExtInfo.GetValue("is_multi") == 1)
+                        if ((int) appMsgExtInfo.GetValue("is_multi") == 1)
                         {
-                            JArray multiAppMsgItemList = (JArray)appMsgExtInfo.GetValue("multi_app_msg_item_list");
+                            JArray multiAppMsgItemList = (JArray) appMsgExtInfo.GetValue("multi_app_msg_item_list");
                             var moreMessage = new BatchMessage();
                             foreach (var jToken in multiAppMsgItemList)
                             {
-                                var subMsg = (JObject)jToken;
-                                url = (string)subMsg.GetValue("content_url");
+                                var subMsg = (JObject) jToken;
+                                url = (string) subMsg.GetValue("content_url");
                                 if (!string.IsNullOrEmpty(url))
                                 {
                                     if (!url.Contains("http://mp.weixin.qq.com"))
-                                    { url = "http://mp.weixin.qq.com" + url; }
+                                    {
+                                        url = "http://mp.weixin.qq.com" + url;
+                                    }
                                 }
                                 else
                                 {
                                     url = "";
                                 }
 
-                                moreMessage.Title = (string)subMsg.GetValue("title");
-                                moreMessage.Digest = (string)subMsg.GetValue("digest");
-                                moreMessage.FileId = (int)subMsg.GetValue("fileid");
+                                moreMessage.Title = (string) subMsg.GetValue("title");
+                                moreMessage.Digest = (string) subMsg.GetValue("digest");
+                                moreMessage.FileId = (int) subMsg.GetValue("fileid");
                                 moreMessage.ContentUrl = url;
-                                moreMessage.SourceUrl = (string)subMsg.GetValue("source_url");
-                                moreMessage.Cover = (string)subMsg.GetValue("cover");
-                                moreMessage.Author = (string)subMsg.GetValue("author");
-                                moreMessage.CopyrightStat = (string)subMsg.GetValue("copyright_stat");
+                                moreMessage.SourceUrl = (string) subMsg.GetValue("source_url");
+                                moreMessage.Cover = (string) subMsg.GetValue("cover");
+                                moreMessage.Author = (string) subMsg.GetValue("author");
+                                moreMessage.CopyrightStat = (string) subMsg.GetValue("copyright_stat");
                                 messages.Add(moreMessage);
                             }
-
                         }
+
                         continue;
 
                     case "62": //视频
-                        aMessage.CdnVideoId = (string)msg.SelectToken("video_msg_ext_info.cdn_videoid");
-                        aMessage.Thumb = (string)msg.SelectToken("video_msg_ext_info.thumb");
-                        aMessage.VideoSrc = "https://mp.weixin.qq.com/mp/getcdnvideourl?__biz=" + biz + "&cdn_videoid=" +
-                            aMessage.CdnVideoId + "&thumb=" + aMessage.Thumb + "&uin=" + "&key=" + key;
-                        break;
-                    default:
+                        aMessage.CdnVideoId = (string) msg.SelectToken("video_msg_ext_info.cdn_videoid");
+                        aMessage.Thumb = (string) msg.SelectToken("video_msg_ext_info.thumb");
+                        aMessage.VideoSrc = "https://mp.weixin.qq.com/mp/getcdnvideourl?__biz=" + biz +
+                                            "&cdn_videoid=" +
+                                            aMessage.CdnVideoId + "&thumb=" + aMessage.Thumb + "&uin=" + "&key=" + key;
                         break;
                 }
 
@@ -292,7 +297,6 @@ namespace WeGouSharp
             {
                 if (m.Type == "49" && string.IsNullOrEmpty(m.ContentUrl))
                 {
-
                 }
                 else
                 {
@@ -301,8 +305,6 @@ namespace WeGouSharp
             }
 
             return finalMessages;
-
-
         }
 
 
@@ -312,14 +314,9 @@ namespace WeGouSharp
         /// <param name="url">文章链接</param>
         /// <remarks>_get_gzh_article_text</remarks>
         /// <returns></returns>
-        protected string _GetOfficialAccountArticleHtml(string url)
+        protected async Task<string> _GetOfficialAccountArticleHtml(string url)
         {
-
-            var headers = new WebHeaderCollection { { "host", "mp.weixin.qq.com" } };
-            var netHelper = new HttpHelper();
-            return netHelper.Get(headers, url);
-
-
+            return await _browser.GetPageAsync(url);
         }
 
 
@@ -329,20 +326,17 @@ namespace WeGouSharp
         /// <param name="url"></param>
         /// <param name="title"></param>
         /// <returns></returns>
-        protected string _GetRelatedJson(string url, string title)
+        protected async Task<string> _GetRelatedJson(string url, string title)
         {
-            string relatedReqUrl = "http://mp.weixin.qq.com/mp/getrelatedmsg?" + "url=" + url + "&title=" + title + "&uin=&key=&pass_ticket=&wxtoken=&devicetype=&clientversion=0&x5=0";
-            var headers = new WebHeaderCollection { { "Host", "mp.weixin.qq.com" }, { "Referer", url } };
-            var netHelper = new HttpHelper();
-            var relatedText = netHelper.Get(headers, url);
+            var relatedText = await _browser.GetPageAsync(url);
             try
             {
                 JObject relateJson = JObject.Parse(relatedText);
-                string errMsg = "";
-                int ret = (int)relateJson.SelectToken("base_resp.ret");
+                string errMsg;
+                int ret = (int) relateJson.SelectToken("base_resp.ret");
                 if (relateJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errMsg = (string)relateJson.SelectToken("base_resp.errmsg");
+                    errMsg = (string) relateJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
@@ -354,15 +348,13 @@ namespace WeGouSharp
                     _logger.Error(errMsg);
                     throw new WechatSogouException();
                 }
-                return relateJson.ToString();
 
+                return relateJson.ToString();
             }
             catch
             {
                 return "";
             }
-
-
         }
 
 
@@ -391,11 +383,9 @@ namespace WeGouSharp
                 encrpt.pass_ticket = passTicket;
                 encrpt.msgid = msgid;
                 encrpt.uin = uin;
-
             }
+
             return encrpt;
-
         }
-
     }
 }

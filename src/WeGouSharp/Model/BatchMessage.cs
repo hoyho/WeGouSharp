@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WeGouSharp.Model
+﻿namespace WeGouSharp.Model
 {
     //群发消息
     public class BatchMessage

@@ -1,12 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using OpenCvSharp;
 using WeGouSharp.Model;
-using WeGouSharp.YunDaMa;
 
 namespace WeGouSharp
 {
@@ -67,17 +62,17 @@ namespace WeGouSharp
 
 
         //从临时文章链接提取文章正文
-        public string ResolveArticleByUrl(string articleUrl)
+        public async Task<string> ResolveArticleByUrl(string articleUrl)
         {
-            var article = _wechatSogouApi.ExtractArticleMain(articleUrl);
+            var article = await _wechatSogouApi.ExtractArticleMain(articleUrl);
             return article;
         }
 
 
         //从临时文章页面的html代码中提取文章正文
-        public string ResolveArticleByHtml(string articleHtml)
+        public async Task<string> ResolveArticleByHtml(string articleHtml)
         {
-            var article = _wechatSogouApi.ExtractArticleMain("", articleHtml);
+            var article = await _wechatSogouApi.ExtractArticleMain("", articleHtml);
             return article;
         }
 
@@ -120,7 +115,7 @@ namespace WeGouSharp
         public async Task<List<BatchMessage>> GetOfficialAccountMessagesByIdAsync(string wechatId = "")
         {
 
-            var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId, "");
+            var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId);
             return rs;
         }
 
@@ -132,7 +127,7 @@ namespace WeGouSharp
         public async Task<string> GetOfficialAccountMessagesByIdSerializedAsync(string wechatId = "")
         {
 
-            var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId, "");
+            var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId);
             return Tools.TryParseJson(rs);
         }
 
@@ -160,51 +155,51 @@ namespace WeGouSharp
 
 
         //获取联想词汇
-        public string[] GetSuggestKeyWords(string inputKeyWord)
+        public async Task<string[]> GetSuggestKeyWordsAsync(string inputKeyWord)
         {
-            var rs = _wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
+            var rs = await _wechatSogouApi.GetSuggestKeyWordsAsync(inputKeyWord);
             return rs;
         }
 
         //获取联想词汇
-        public string GetSuggestKeyWordsSerialized(string inputKeyWord)
+        public async Task<string> GetSuggestKeyWordsSerializedAsync(string inputKeyWord)
         {
-            var rs = _wechatSogouApi.GetSuggestKeyWords(inputKeyWord);
+            var rs = await  _wechatSogouApi.GetSuggestKeyWordsAsync(inputKeyWord);
             return Tools.TryParseJson(rs);
         }
 
         //获取首页热搜词汇
-        public List<HotWord> GetTopWords()
+        public async Task<List<HotWord>> GetTopWordsAsync()
         {
-            var words = _wechatSogouApi.GetTopWords();
+            var words = await _wechatSogouApi.GetTopWordsAsync();
             return words;
         }
 
         //获取首页热搜词汇
         public string GetTopWordsSerialized()
         {
-            var words = _wechatSogouApi.GetTopWords();
+            var words = _wechatSogouApi.GetTopWordsAsync();
             return Tools.TryParseJson(words);
         }
 
 
-        public List<Article> GetArticleByCategoryIndex(int categoryIndex, int page)
+        public async Task<List<Article>> GetArticleByCategoryIndex(int categoryIndex, int page)
         {
-            var rs = _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
+            var rs = await _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return rs;
         }
 
-        public string GetArticleByCategoryIndexSerialized(int categoryIndex, int page)
+        public async Task<string> GetArticleByCategoryIndexSerialized(int categoryIndex, int page)
         {
 
-            var rs = _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
+            var rs = await _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return Tools.TryParseJson(rs);
         }
 
 
-        public List<Article> GetAllRecentArticle(uint maxPage)
+        public async Task<List<Article>> GetAllRecentArticle(uint maxPage)
         {
-            var articles = _wechatSogouApi.GetAllRecentArticle((int)maxPage);
+            var articles = await _wechatSogouApi.GetAllRecentArticle((int)maxPage);
             return articles;
         }
 

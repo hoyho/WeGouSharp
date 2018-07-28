@@ -15,10 +15,12 @@ namespace WeGouSharp
     internal class WechatSogouAPI : WechatSogouBasic
     {
         readonly ILog _logger;
+        private Browser _browser;
 
         public WechatSogouAPI(ILog logger, Browser browser) : base(logger, browser)
         {
             _logger = logger;
+            _browser = browser;
         }
 
         /// <summary>
@@ -82,7 +84,7 @@ namespace WeGouSharp
         /// <returns></returns>
         public async Task<OfficialAccount> GetAccountInfoByIdAsync(string wechatid)
         {
-            var info = (await SearchOfficialAccountAsync(wechatid, 1))?.FirstOrDefault(); //可能为空
+            var info = (await SearchOfficialAccountAsync(wechatid))?.FirstOrDefault(); //可能为空
             return info;
         }
 
@@ -97,7 +99,7 @@ namespace WeGouSharp
         {
             var articleList = new List<Article>();
             //string text = this._SearchArticle_Html(keyword, page);
-            string text = await SearchArticleHtmlAsync(keyword,page);
+            string text = await SearchArticleHtmlAsync(keyword, page);
             var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
             //todo
@@ -218,30 +220,31 @@ namespace WeGouSharp
         /// <param name="wechatName">微信昵称(不推荐，因为不唯一)</param>
         /// <remarks> 最保险的做法是提供url或者wechatid</remarks>
         /// <returns> list of batchMessage 一定含有字段qunfa_id,datetime,type 当type不同时，含有不同的字段，具体见文档</returns>
-        public async Task<List<BatchMessage>> GetOfficialAccountMessagesAsync(string accountPageUrl = "", string wechatId = "",
+        public async Task<List<BatchMessage>> GetOfficialAccountMessagesAsync(string accountPageUrl = "",
+            string wechatId = "",
             string wechatName = "")
         {
             string htmlStr = "";
             if (!string.IsNullOrEmpty(accountPageUrl))
             {
-                htmlStr = _GetRecentArticle_Html(accountPageUrl);
+                htmlStr = await _GetRecentArticle_Html(accountPageUrl);
             }
             else if (!string.IsNullOrEmpty(wechatId))
             {
                 var account = await GetAccountInfoByIdAsync(wechatId);
                 accountPageUrl = account.AccountPageurl;
-                htmlStr = _GetRecentArticle_Html(accountPageUrl);
+                htmlStr = await _GetRecentArticle_Html(accountPageUrl);
             }
             else if (!string.IsNullOrEmpty(wechatName))
             {
                 var account = await GetAccountInfoByIdAsync(wechatName);
                 accountPageUrl = account.RecentArticleUrl;
-                htmlStr = _GetRecentArticle_Html(accountPageUrl);
+                htmlStr = await _GetRecentArticle_Html(accountPageUrl);
             }
 
             var encry = new EncryptArgs();
-            var articleJsonString = this._ExtracJson(htmlStr);
-            return this._ResolveBatchMessageFromJson(articleJsonString, encry);
+            var articleJsonString = _ExtracJson(htmlStr);
+            return _ResolveBatchMessageFromJson(articleJsonString, encry);
         }
 
 
@@ -253,7 +256,8 @@ namespace WeGouSharp
         /// <param name="wechatName"></param>
         /// <remarks>get_gzh_message_and_info</remarks>
         /// <returns>公众号相关信息及已发消息(json)</returns>
-        public async Task<string> GetOfficialAccountInfoAndMessagesAsync(string accountPageUrl = "", string wechatId = "",
+        public async Task<string> GetOfficialAccountInfoAndMessagesAsync(string accountPageUrl = "",
+            string wechatId = "",
             string wechatName = "")
         {
             string text = "";
@@ -261,19 +265,19 @@ namespace WeGouSharp
             if (!string.IsNullOrEmpty(accountPageUrl))
             {
                 url = accountPageUrl;
-                text = _GetRecentArticle_Html(url);
+                text = await _GetRecentArticle_Html(url);
             }
             else if (!string.IsNullOrEmpty(wechatId))
             {
                 var officialAccount = await GetAccountInfoByIdAsync(wechatId);
                 url = officialAccount.AccountPageurl;
-                text = _GetRecentArticle_Html(url);
+                text = await _GetRecentArticle_Html(url);
             }
             else if (!string.IsNullOrEmpty(wechatName))
             {
                 var officialAccount = await GetAccountInfoByIdAsync(wechatName);
                 url = officialAccount.AccountPageurl;
-                text = _GetRecentArticle_Html(url);
+                text = await _GetRecentArticle_Html(url);
             }
 
             var encryp = new EncryptArgs();
@@ -299,7 +303,7 @@ namespace WeGouSharp
         /// <param name="articlePageHtml"></param>
         /// <remarks>deal_article_content</remarks>
         /// <returns></returns>
-        public string ExtractArticleMain(string url, string articlePageHtml = "")
+        public async Task<string> ExtractArticleMain(string url, string articlePageHtml = "")
         {
             if (!string.IsNullOrEmpty(articlePageHtml)) //优先使用articlePageHtml
             {
@@ -307,7 +311,7 @@ namespace WeGouSharp
             }
             else if (!string.IsNullOrEmpty(url))
             {
-                articlePageHtml = _GetOfficialAccountArticleHtml(url);
+                articlePageHtml = await _GetOfficialAccountArticleHtml(url);
             }
             else
             {
@@ -343,9 +347,9 @@ namespace WeGouSharp
         /// <remarks>deal_article_related</remarks>
         /// <returns>相似文章（json格式）</returns>
         [Obsolete]
-        public string GetRelatedArticleJson(string url, string title)
+        public async Task<string> GetRelatedArticleJson(string url, string title)
         {
-            return _GetRelatedJson(url, title);
+            return await _GetRelatedJson(url, title);
         }
 
 
@@ -357,7 +361,7 @@ namespace WeGouSharp
         /// <remarks>deal_article_comment</remarks>
         /// <returns></returns>
         [Obsolete]
-        public string RequireArticleComment(string url, string articlePageHtml = "")
+        public async Task<string> RequireArticleComment(string url, string articlePageHtml = "")
         {
             if (string.IsNullOrEmpty(articlePageHtml))
             {
@@ -365,7 +369,7 @@ namespace WeGouSharp
             }
             else if (string.IsNullOrEmpty(url))
             {
-                articlePageHtml = _GetOfficialAccountArticleHtml(url);
+                articlePageHtml = await _GetOfficialAccountArticleHtml(url);
             }
             else
             {
@@ -389,17 +393,16 @@ namespace WeGouSharp
             headers.Add("host", "mp.weixin.qq.com");
             headers.Add("referer", "http://mp.weixin.qq.com");
 
-            var netHelper = new HttpHelper();
-            string commentText = netHelper.Get(headers, commentReqUrl);
+            string commentText = await _browser.GetPageWithoutVcodeAsync(commentReqUrl);
             JObject commentJson = new JObject();
             try
             {
                 commentJson = JObject.Parse(commentText);
-                int ret = (int)commentJson.SelectToken("base_resp.ret");
-                string errorMsg = "";
+                int ret = (int) commentJson.SelectToken("base_resp.ret");
+                string errorMsg;
                 if (commentJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errorMsg = (string)commentJson.SelectToken("base_resp.errmsg");
+                    errorMsg = (string) commentJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
@@ -429,7 +432,7 @@ namespace WeGouSharp
         /// <param name="articlePageHtml"></param>
         /// <returns>"阅读原文(的链接)"</returns>
         [Obsolete]
-        string RequireReadOriginal(string url, string articlePageHtml = "")
+        async Task<string> RequireReadOriginal(string url, string articlePageHtml = "")
         {
             string originalLink = "";
             if (!string.IsNullOrEmpty(articlePageHtml))
@@ -438,7 +441,7 @@ namespace WeGouSharp
             }
             else if (!string.IsNullOrEmpty(url))
             {
-                articlePageHtml = _GetOfficialAccountArticleHtml(url);
+                articlePageHtml = await _GetOfficialAccountArticleHtml(url);
             }
             else
             {
@@ -490,14 +493,12 @@ namespace WeGouSharp
         /// <param name="keyWord"></param>
         /// <remarks>get_sugg</remarks>
         /// <returns>sugg: 联想关键词数组</returns>
-        public string[] GetSuggestKeyWords(string keyWord)
+        public async Task<string[]> GetSuggestKeyWordsAsync(string keyWord)
         {
             string[] suggArray;
             string url = "http://w.sugg.sogou.com/sugg/ajaj_json.jsp?key=" + keyWord + "&type=wxpub&pr=web";
-            var netHelper = new HttpHelper();
-            var headers = new WebHeaderCollection();
-            var text = netHelper.Get(headers, url, "default");
-            string kwPatten = @"\[""" + keyWord + @""",\[(.*?)\]"; //match: \["b2c",\[(.*?)\]
+            var text = await _browser.GetPageWithoutVcodeAsync(url);
+            string kwPatten = @"\[""" + keyWord + @""",\[(.*?)\]";
             var regex = new Regex(kwPatten);
             try
             {
@@ -519,17 +520,10 @@ namespace WeGouSharp
         /// 获取首页热词，排行和热度
         /// </summary>
         /// <returns></returns>
-        public List<HotWord> GetTopWords()
+        public async Task<List<HotWord>> GetTopWordsAsync()
         {
             string url = "http://weixin.sogou.com/";
-            var headers =
-                new WebHeaderCollection
-                {
-                    {"Host", "weixin.sogou.com"},
-                    {"Referer", "http://weixin.sogou.com/"}
-                };
-            var netHelper = new HttpHelper();
-            string text = netHelper.Get(headers, url, "UTF-8");
+            string text = await _browser.GetPageWithoutVcodeAsync(url); //netHelper.Get(headers, url, "UTF-8");
 
             var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
@@ -565,9 +559,9 @@ namespace WeGouSharp
         /// <param name="page">页，从0开始</param>
         /// <remarks>get_recent_article_url_by_index_single</remarks>
         /// <returns></returns>
-        public List<Article> GetArticleByCategoryIndex(int categoryIndex, int page)
+        public async Task<List<Article>> GetArticleByCategoryIndex(int categoryIndex, int page)
         {
-            string pageStr = ""; // "pc_" + page;
+            string pageStr; // "pc_" + page;
             if (page == 0)
             {
                 pageStr = "pc_" + categoryIndex; //分类N第0页格式为xxxx/pc/pc_N/pc_N.html
@@ -582,14 +576,7 @@ namespace WeGouSharp
             //http://weixin.sogou.com/pcindex/pc/pc_3/2.html //分类3第2页
 
             string url = "http://weixin.sogou.com/pcindex/pc/pc_" + categoryIndex + '/' + pageStr + ".html";
-            var headers = new WebHeaderCollection
-            {
-                {"Host", "weixin.sogou.com"},
-                {"Referer", "http://weixin.sogou.com/"},
-                {"Accept", "*/*"}
-            };
-            var netHelper = new HttpHelper();
-            string text = netHelper.Get(headers, url, "UTF-8");
+            string text = await _browser.GetPageAsync(url);
 
             var pageDoc = new HtmlDocument();
             pageDoc.LoadHtml(text);
@@ -604,7 +591,7 @@ namespace WeGouSharp
 
             foreach (var li in targetArea)
             {
-                var article = new Article() { Imgs = new List<string>() };
+                var article = new Article() {Imgs = new List<string>()};
                 var account = new OfficialAccount();
                 try
                 {
@@ -647,25 +634,23 @@ namespace WeGouSharp
         /// </summary>
         /// <remarks>get_recent_article_url_by_index_all</remarks>
         /// <returns></returns>
-        public List<Article> GetAllRecentArticle(int maxPage)
+        public async Task<List<Article>> GetAllRecentArticle(int maxPage)
         {
             var listArticles = new List<Article>();
 
             for (int cateIndex = 0; cateIndex < 20; cateIndex++)
             {
                 int pageIndex = 0;
-                var articles = GetArticleByCategoryIndex(cateIndex, pageIndex);
+                var articles = await GetArticleByCategoryIndex(cateIndex, pageIndex);
                 while (pageIndex < maxPage)
                 {
                     listArticles.AddRange(articles);
                     pageIndex += 1;
-                    articles = GetArticleByCategoryIndex(cateIndex, pageIndex);
+                    articles = await GetArticleByCategoryIndex(cateIndex, pageIndex);
                 }
             }
 
             return listArticles;
         }
-
-
     }
 }

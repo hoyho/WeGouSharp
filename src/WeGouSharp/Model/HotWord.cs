@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WeGouSharp.Model
+﻿namespace WeGouSharp.Model
 {
     /// <summary>
     /// 首页搜索热词

@@ -5,6 +5,8 @@
     /// </summary>
     public class YunDaMaConfig
     {
+        public string HomePage { get; set; }
+
         public string UserName { get; set; }
 
         public string PassWord { get; set; }

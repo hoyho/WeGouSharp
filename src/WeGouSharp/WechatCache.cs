@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-
-namespace WeGouSharp
+﻿namespace WeGouSharp
 {
-
-
     class WechatCache
     {
         private readonly FileSystemCache _fileCache;

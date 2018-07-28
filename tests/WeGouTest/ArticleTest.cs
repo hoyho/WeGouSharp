@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using WeGouSharp;
 using WeGouSharp.Model;
@@ -25,9 +26,9 @@ namespace WeGouTest
         }
 
         [Fact]
-        public void TestResolveArticleByUrl()
+        public async Task TestResolveArticleByUrl()
         {
-            var rs = api.ResolveArticleByUrl("");
+            var rs = await api.ResolveArticleByUrl("");
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }
@@ -36,7 +37,7 @@ namespace WeGouTest
         [Fact]
         public void TestResolveArticleByHtml()
         {
-            var rs = api.ResolveArticleByHtml("");
+            var rs = api.ResolveArticleByHtml("").Result;
             var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
             Assert.True(rs.Length > 0);
         }

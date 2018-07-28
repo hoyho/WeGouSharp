@@ -1,24 +1,16 @@
 using log4net;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
-using System.Net;
 using System.Text;
-using System.Drawing;
 using static WeGouSharp.Tools;
 using System.Linq;
 using System.Runtime.InteropServices;
 using WeGouSharp.YunDaMa;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Firefox;
-using OpenQA.Selenium.PhantomJS;
 using System.Collections.Generic;
-using OpenQA.Selenium;
-using System.Threading;
-using WeGouSharp.Model.OS;
 using Microsoft.Extensions.Configuration;
-using OpenQA.Selenium.Chrome;
-using log4net.Core;
+using WeGouSharp.Infrastructure;
 
 namespace WeGouSharp
 {
@@ -43,7 +35,7 @@ namespace WeGouSharp
             ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
 
             FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile};
-            _driver = (FirefoxDriver) LaunchFireFox(ffopt);
+            _driver = LaunchFireFox(ffopt);
 
             var homeAddr = "http://weixin.sogou.com/";
             _driver.Navigate().GoToUrl(homeAddr);
@@ -60,7 +52,7 @@ namespace WeGouSharp
             var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/";
 
             FirefoxDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && IsRunWithXServer()) //linux and have desktop
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && IsRunWithXServer()) //linux with desktop environemnt
             {
                 geckodriverPath = "Resource/firefox_linux/";
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
@@ -92,7 +84,7 @@ namespace WeGouSharp
         /// <param name="url"></param>
         /// <returns></returns>
         /// <exception cref="WechatSogouVcodeException"></exception>
-        public Task<string> GetWithoutVcodeAsync(string url)
+        public Task<string> GetPageWithoutVcodeAsync(string url)
         {
             return Task.Run(() =>
             {
@@ -133,9 +125,9 @@ namespace WeGouSharp
 
 
         //搜狗页的验证码
-        public async Task HandleSogouVcode(string vCodeUrl, bool useCloudDecode = false)
+        public async Task<bool> HandleSogouVcodeAsync(string vCodeUrl, bool useCloudDecode = false)
         {
-            var vcodePage = await GetPageAsync(vCodeUrl);
+            await GetPageAsync(vCodeUrl);
 
             var base64Img = _driver.ExecuteScript(@"
     var c = document.createElement('canvas');
@@ -160,11 +152,11 @@ namespace WeGouSharp
             {
                 Console.WriteLine(
                     @"your system is not support showing image in console, please open captcha from ./captcha/vcode");
-                Tools.SaveImage(base64Img, "vcode.jpg");
+                SaveImage(base64Img, "vcode.jpg");
                 Console.WriteLine("请输入验证码：");
             }
 
-            var verifyCode = "";
+            string verifyCode;
             if (useCloudDecode)
             {
                 var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
@@ -180,6 +172,7 @@ namespace WeGouSharp
             codeInput.SendKeys(verifyCode);
 
             _driver.FindElementById("submit").Click();
+            return true;
         }
 
 

@@ -1,7 +1,7 @@
 
 using System.Diagnostics;
 
-namespace WeGouSharp
+namespace WeGouSharp.Infrastructure
 {
  public static class ShellHelper
     {

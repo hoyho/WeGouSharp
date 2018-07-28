@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WeGouSharp.Model
+﻿namespace WeGouSharp.Model
 {
     /// <summary>
     ///加入到链接中的一些参数

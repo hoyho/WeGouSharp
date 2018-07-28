@@ -3,8 +3,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Threading;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using WeGouSharp.Model;
 
@@ -44,9 +42,9 @@ namespace WeGouSharp.YunDaMa
                 return ydm.text;//已经上传过，直接读取结果
             }
 
-            this._tryTime = 0; //重置，下面会用到
+            _tryTime = 0; //重置，下面会用到
             var decodeResult =  GetDecodeResult(ydm?.cid);
-            ydm = JsonConvert.DeserializeObject<Model.YunDaMaResponse>(decodeResult);
+            ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(decodeResult);
             Tools.CopytoTrain("captcha/vcode.jpg",$"trainingFiles/{ydm.text}.jpg");
             return ydm.text;
 
@@ -123,7 +121,7 @@ namespace WeGouSharp.YunDaMa
                         requestStream.Write(formItemBytes, 0, formItemBytes.Length);
                         using (FileStream fileStream = new FileStream(files[key], FileMode.Open, FileAccess.Read))
                         {
-                            var bytesRead = 0;
+                            int bytesRead;
                             while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) != 0)
                             {
                                 requestStream.Write(buffer, 0, bytesRead);
@@ -163,8 +161,8 @@ namespace WeGouSharp.YunDaMa
         {
             var requestUrl = $"http://api.yundama.com/api.php?cid={cid}&method=result";
             var netHelper = new HttpHelper();
-            var json = netHelper.Get(requestUrl);;
-            var ydm = JsonConvert.DeserializeObject<Model.YunDaMaResponse>(json);
+            var json = netHelper.Get(requestUrl);
+            var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(json);
             if (ydm?.ret!=0 && _tryTime<_maxTry) //结果未出。继续等待
             {
                 _tryTime += 1;
