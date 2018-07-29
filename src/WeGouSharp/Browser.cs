@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using WeGouSharp.YunDaMa;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Firefox;
+//            selenium.webdriver.remote.remote_connection;
+using  OpenQA.Selenium.Remote;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Infrastructure;
@@ -16,11 +18,9 @@ namespace WeGouSharp
 {
     public class Browser
     {
-        private FirefoxDriver _driver;
+        private readonly FirefoxDriver _driver;
 
-        private List<string> _tabs = new List<string>();
-
-        IConfiguration _config;
+        readonly IConfiguration _config;
 
         ILog _logger;
 
@@ -31,49 +31,72 @@ namespace WeGouSharp
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             FirefoxProfile ffProfile = new FirefoxProfile();
-            ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
-            ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
+            
+            var preSettings = _config.GetSection("Driver:FireFoxPreference").Get<Dictionary<string, string>>();
 
-            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile};
+            if (preSettings != null)
+            {
+                foreach (var keyValuePair in preSettings)
+                {
+                    ffProfile.SetPreference(keyValuePair.Key, keyValuePair.Value);
+//                    ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
+//                    ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
+                }
+            }
+
+            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile,LogLevel = FirefoxDriverLogLevel.Fatal};
             _driver = LaunchFireFox(ffopt);
+            
 
             var homeAddr = "http://weixin.sogou.com/";
             _driver.Navigate().GoToUrl(homeAddr);
 
             Console.WriteLine(_driver.PageSource);
-            _tabs = _driver.WindowHandles.ToList();
         }
 
 
-        public FirefoxDriver LaunchFireFox(FirefoxOptions option)
+        /// <summary>
+        /// 初始化引擎
+        /// </summary>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        private FirefoxDriver LaunchFireFox(FirefoxOptions option)
         {
             var browserPath = "";
-            //folder containe geckodriver            
-            var geckodriverPath = "/home/hoyho/workspace/WeGouSharp/src/WeGouSharp/Resource/firefox_linux/";
 
-            FirefoxDriver driver = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && IsRunWithXServer()) //linux with desktop environemnt
+            //folder containe geckodriver            
+            var geckodriverPath = "";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                && IsRunWithXServer()
+            ) //linux with desktop environemnt
             {
-                geckodriverPath = "Resource/firefox_linux/";
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/");
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                browserPath = _config["FireFoxPath_OSX"];
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/");
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/firefox");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                geckodriverPath = "";
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_windows/");
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                     "Resource/firefox_windows/firefox.exe");
             }
 
             var fds = FirefoxDriverService.CreateDefaultService(geckodriverPath);
-            //fds.FirefoxBinaryPath = browserPath;
-            option.AddArgument("-headless");
+            fds.FirefoxBinaryPath = browserPath;
+            
 
-            driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
-
+            var args = _config.GetSection("Driver:Argument").Get<List<string>>();
+            //option.AddArgument("-headless");
+            if (args != null && args.Count > 0)
+            {
+                option.AddArguments(args);
+            }
+            var driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
             return driver;
         }
 
@@ -176,6 +199,10 @@ namespace WeGouSharp
         }
 
 
+        /// <summary>
+        /// 运行shell判断系统是否有Desktop 环境
+        /// </summary>
+        /// <returns></returns>
         private bool IsRunWithXServer()
         {
             var cmd = @"

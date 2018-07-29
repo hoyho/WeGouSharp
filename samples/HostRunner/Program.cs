@@ -25,10 +25,12 @@ namespace HostRunner
 
             // //创建logger
             var logger = LogManager.GetLogger(typeof(Program));
+            logger.Debug("Program start");
 
             // Set up configuration sources.
             var cfBuilder = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(AppContext.BaseDirectory))
+                .AddJsonFile("wegousharpsettings.json",false)
                 .AddJsonFile("appsettings.json", false);
             var config = cfBuilder.Build();
 

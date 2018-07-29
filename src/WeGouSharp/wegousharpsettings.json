@@ -10,10 +10,15 @@
   },
   "Driver": {
     "FireFoxPreference": {
+      //open firefox input about:config , you can referer http://kb.mozillazine.org/Category:Preferences
       "browser.download.folderList": 1,
       "browser.helperApps.neverAsk.saveToDisk": "text/plain"
     },
-    "Argument":["-headless"]
+    "Argument": [
+      "--headless",
+      "--MOZ_LOG_FILE=/tmp/Mozilla.log",
+      "--MOZ_LOG=timestamp,rotate:200,nsHttp:5,nsSocketTransport:5,nsStreamPump:5,nsHostResolver:5"
+    ]
   },
   "FireFoxPath_Linux": "Resource/firefox_linux/firefox",
   "UserAgent": [
