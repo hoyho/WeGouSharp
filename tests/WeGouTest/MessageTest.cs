@@ -10,7 +10,7 @@ namespace WeGouTest
 {
     public class MessageTest : BasicConfig
     {
-        WeGouService _api;
+        readonly WeGouService _api;
 
         public MessageTest()
         {
@@ -21,7 +21,7 @@ namespace WeGouTest
         public void TestGetOfficialAccountMessagesById()
         {
             var rs = _api.GetOfficialAccountMessagesByIdAsync("bitsea").Result;
-            Assert.False(rs.FirstOrDefault().Author.Contains("和菜头"));
+            Assert.True(rs != null && rs.FirstOrDefault().Author.Contains("和菜头"));
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesBy()
         {
-            var rs = _api.GetOfficialAccountMessagesByUrlAsync("");
+            var rs = _api.GetOfficialAccountMessagesByUrlAsync();
 
             //todo
         }

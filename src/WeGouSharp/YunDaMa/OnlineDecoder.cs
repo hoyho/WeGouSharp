@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Threading;
+using log4net;
 using Newtonsoft.Json;
 using WeGouSharp.Model;
 
@@ -18,11 +19,13 @@ namespace WeGouSharp.YunDaMa
         private int _maxTry = 1;
 
         private YunDaMaConfig Conf { get; set; }
+        private ILog _logger;
 
        
-        public OnlineDecoder(YunDaMaConfig yConfig)
+        public OnlineDecoder(YunDaMaConfig yConfig,ILog logger)
         {
             Conf = yConfig;
+            _logger = logger;
         }
 
         public string OnlineDecode(string imageLocation)
@@ -73,16 +76,18 @@ namespace WeGouSharp.YunDaMa
             string APIUrl = "http://api.yundama.com/";
 
             //add post values and files
-            NameValueCollection values = new NameValueCollection();
-            NameValueCollection files = new NameValueCollection();
-            values.Add("username", userName);
-            values.Add("password", passWord);
-            values.Add("codetype", codeType);
-            values.Add("method", action);
-            values.Add("appid", appid);
-            values.Add("appkey", appkey);
-            values.Add("timeout", timeOut);
-            files.Add("file", filePath);
+            NameValueCollection values = new NameValueCollection
+            {
+                {"username", userName},
+                {"password", passWord},
+                {"codetype", codeType},
+                {"method", action},
+                {"appid", appid},
+                {"appkey", appkey},
+                {"timeout", timeOut}
+            };
+            NameValueCollection files = new NameValueCollection {{"file", filePath}};
+
             string boundary = "----------------------------" + DateTime.Now.Ticks.ToString("x");
             // The first boundary
             byte[] boundaryBytes = System.Text.Encoding.UTF8.GetBytes("\r\n--" + boundary + "\r\n");
@@ -104,7 +109,7 @@ namespace WeGouSharp.YunDaMa
                 foreach (string key in values.Keys)
                 {
                     byte[] formItemBytes = System.Text.Encoding.UTF8.GetBytes(
-                        string.Format("Content-Disposition: form-data; name=\"{0}\";\r\n\r\n{1}", key, values[key]));
+                        $"Content-Disposition: form-data; name=\"{key}\";\r\n\r\n{values[key]}");
                     requestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
                     requestStream.Write(formItemBytes, 0, formItemBytes.Length);
                 }
@@ -136,7 +141,7 @@ namespace WeGouSharp.YunDaMa
                 requestStream.Write(trailer, 0, trailer.Length);
                 requestStream.Close();
 
-                using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
+                using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream() ?? throw new WechatSogouRequestException()))
                 {
                     string result = reader.ReadToEnd();
                     return result;
@@ -144,6 +149,7 @@ namespace WeGouSharp.YunDaMa
             }
             catch (Exception ex)
             {
+                _logger.Info(ex.ToString());
                 _tryTime += 1;
                 return _tryTime > _maxTry
                     ? ""

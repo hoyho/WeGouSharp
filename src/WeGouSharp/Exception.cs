@@ -64,16 +64,17 @@ namespace WeGouSharp
     }
 
 
-    class WechatSogouEndException : WechatSogouException
+    //基于搜狗搜索的的微信公众号爬虫接口 文件 异常类
+    class WechatSogouFileException : WechatSogouException
     {
-        //基于搜狗搜索的的微信公众号爬虫接口 数据处理完成 异常类
+        
     }
 
 
-
-    class WechatSogouBreakException : WechatSogouException
+   //基于搜狗搜索的的微信公众号爬虫接口 request/response 异常类
+    class WechatSogouRequestException : WechatSogouException
     {
-        //"基于搜狗搜索的的微信公众号爬虫接口 中断 异常类
+        
     }
 
 

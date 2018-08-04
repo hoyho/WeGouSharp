@@ -29,10 +29,10 @@ namespace WeGouSharp
         }
 
         //保存验证码
-        public static bool SaveImage(string base64String, string imgName)
+        public static void SaveImage(string base64String, string imgName)
         {
             var path = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
-            path = Path.Combine(path, "captcha");
+            path = Path.Combine(path ?? throw new WechatSogouFileException(), "captcha");
             //Check if directory exist
             if (!Directory.Exists(path))
             {
@@ -45,8 +45,6 @@ namespace WeGouSharp
             byte[] imageBytes = Convert.FromBase64String(base64String);
 
             File.WriteAllBytes(imgPath, imageBytes);
-
-            return true;
         }
 
 
@@ -57,12 +55,21 @@ namespace WeGouSharp
         /// <param name="destPath"></param>
         public static void CopytoTrain(string srcPath, string destPath)
         {
-            var file = new FileInfo(srcPath);
-            if (file.Exists)
+            try
             {
-                // true is overwrite
-                file.CopyTo(destPath, true);
+                var file = new FileInfo(srcPath);
+                if (file.Exists)
+                {
+                    // true is overwrite
+                    file.CopyTo(destPath, true);
+                }
             }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                throw new WechatSogouFileException();
+            }
+            
         }
 
 

@@ -3,13 +3,10 @@ using System;
 using System.IO;
 using System.Text;
 using static WeGouSharp.Tools;
-using System.Linq;
 using System.Runtime.InteropServices;
 using WeGouSharp.YunDaMa;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Firefox;
-//            selenium.webdriver.remote.remote_connection;
-using  OpenQA.Selenium.Remote;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Infrastructure;
@@ -22,7 +19,7 @@ namespace WeGouSharp
 
         readonly IConfiguration _config;
 
-        ILog _logger;
+        private ILog _logger;
 
         public Browser(ILog logger, IConfiguration config)
         {
@@ -31,7 +28,7 @@ namespace WeGouSharp
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             FirefoxProfile ffProfile = new FirefoxProfile();
-            
+
             var preSettings = _config.GetSection("Driver:FireFoxPreference").Get<Dictionary<string, string>>();
 
             if (preSettings != null)
@@ -44,14 +41,14 @@ namespace WeGouSharp
                 }
             }
 
-            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile,LogLevel = FirefoxDriverLogLevel.Fatal};
+            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal};
             _driver = LaunchFireFox(ffopt);
-            
+
 
             var homeAddr = "http://weixin.sogou.com/";
             _driver.Navigate().GoToUrl(homeAddr);
 
-            Console.WriteLine(_driver.PageSource);
+            //Console.WriteLine(_driver.PageSource);
         }
 
 
@@ -86,9 +83,16 @@ namespace WeGouSharp
                     "Resource/firefox_windows/firefox.exe");
             }
 
-            var fds = FirefoxDriverService.CreateDefaultService(geckodriverPath);
-            fds.FirefoxBinaryPath = browserPath;
-            
+            //use embeded driver and geckodriver
+            var fds = string.IsNullOrEmpty(geckodriverPath)
+                ? FirefoxDriverService.CreateDefaultService()
+                : FirefoxDriverService.CreateDefaultService(geckodriverPath);
+
+            if (!string.IsNullOrWhiteSpace(browserPath))
+            {
+                fds.FirefoxBinaryPath = browserPath;
+            }
+
 
             var args = _config.GetSection("Driver:Argument").Get<List<string>>();
             //option.AddArgument("-headless");
@@ -96,6 +100,7 @@ namespace WeGouSharp
             {
                 option.AddArguments(args);
             }
+
             var driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
             return driver;
         }
@@ -141,9 +146,10 @@ namespace WeGouSharp
 
 
         //微信文章页出现的验证码
-        public async Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
+        public Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
         {
-            return;
+            _logger.Debug("vCodeUrl:" + vCodeUrl);
+            return Task.CompletedTask;
         }
 
 
@@ -153,17 +159,17 @@ namespace WeGouSharp
             await GetPageAsync(vCodeUrl);
 
             var base64Img = _driver.ExecuteScript(@"
-    var c = document.createElement('canvas');
-    var ctx = c.getContext('2d');
-    var img = document.getElementById('seccodeImage');
-    c.height=img.height;
-    c.width=img.width;
-    ctx.drawImage(img, 0, 0,img.width, img.height);
-    var base64String = c.toDataURL();
-    return base64String;
-    ") as string;
+                var c = document.createElement('canvas');
+                var ctx = c.getContext('2d');
+                var img = document.getElementById('seccodeImage');
+                c.height=img.height;
+                c.width=img.width;
+                ctx.drawImage(img, 0, 0,img.width, img.height);
+                var base64String = c.toDataURL();
+                return base64String;
+                ") as string;
 
-            base64Img = base64Img.Replace("data:image/png;base64,", "");
+            base64Img = base64Img?.Replace("data:image/png;base64,", "");
 
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -183,7 +189,7 @@ namespace WeGouSharp
             if (useCloudDecode)
             {
                 var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
-                verifyCode = decoder.OnlineDecode("chaptcha/vcode.jpg");
+                verifyCode = decoder?.OnlineDecode("chaptcha/vcode.jpg");
             }
             else
             {

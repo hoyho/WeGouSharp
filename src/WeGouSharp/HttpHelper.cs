@@ -32,7 +32,7 @@ namespace WeGouSharp
                 // Get the stream containing content returned by the server.
                 Stream dataStream = response.GetResponseStream();
                 // Open the stream using a StreamReader for easy access.
-                StreamReader reader = new StreamReader(dataStream);
+                StreamReader reader = new StreamReader(dataStream ?? throw new Exception($"Get response error from {url}"));
                 // Read the content.
                 responseFromServer = reader.ReadToEnd();
 

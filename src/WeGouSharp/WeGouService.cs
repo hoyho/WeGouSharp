@@ -1,72 +1,35 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using log4net;
-using log4net.Config;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using WeGouSharp.Core;
 using WeGouSharp.Model;
-using WeGouSharp.YunDaMa;
 
 namespace WeGouSharp
 {
     //暴露给外部调用的服务类
     public class WeGouService
     {
-
-        WechatSogouAPI _wechatSogouApi;
-        static bool IsInit;
-
-        private void EnsureInject()
-        {
-            if (IsInit) return;
-            
-            //init logger
-            var configFile = new FileInfo("log4net.config");
-            var repo = LogManager.GetRepository(Assembly.GetEntryAssembly());
-            XmlConfigurator.ConfigureAndWatch(repo, configFile);
-
-            // //创建logger
-            var logger = LogManager.GetLogger(typeof(Program));
-            logger.Debug("Program start");
-
-            // Set up configuration sources.
-            var cfBuilder = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(AppContext.BaseDirectory))
-                .AddJsonFile("wegousharpsettings.json", false)
-                .AddJsonFile("appsettings.json", false);
-            var config = cfBuilder.Build();
-
-            var sp = new ServiceCollection()
-            .AddSingleton<IConfiguration>(config)
-            .AddSingleton<ILog>(logger)
-            .AddSingleton<YunDaMaConfig>(config.GetSection("YunDaMa").Get<YunDaMaConfig>())
-            .AddScoped<IDecode, OnlineDecoder>()
-            .AddScoped<WeGouService, WeGouService>()
-            .AddSingleton<Browser, Browser>()
-            .BuildServiceProvider();
-
-            ServiceProviderAccessor.SetServiceProvider(sp);
-
-            IsInit = true;
-
-        }
+        readonly WechatSogouApi _wechatSogouApi;
 
         public WeGouService()
         {
-            EnsureInject();
+            Program.EnsureInject();
+
             var logger = ServiceProviderAccessor.ResolveService<ILog>();
             var browser = ServiceProviderAccessor.ResolveService<Browser>();
-            _wechatSogouApi = new WechatSogouAPI(logger, browser);
+            var conf = ServiceProviderAccessor.ResolveService<IConfiguration>();
+            
+            _wechatSogouApi = new WechatSogouApi(logger, browser, conf);
         }
-        public WeGouService(ILog logger, Browser browser)
+
+        public WeGouService(ILog logger, Browser browser, IConfiguration conf)
         {
-            _wechatSogouApi = new WechatSogouAPI(logger, browser);
+            _wechatSogouApi = new WechatSogouApi(logger, browser, conf);
         }
 
         #region 公众号
+
         //根据关键字搜索公众号
         public async Task<List<OfficialAccount>> SearchOfficialAccountAsync(string keyWord, int page = 1)
         {
@@ -85,7 +48,6 @@ namespace WeGouSharp
         //根据公众号id查询
         public async Task<OfficialAccount> GetAccountInfoByIdAsync(string accountId)
         {
-
             var account = await _wechatSogouApi.GetAccountInfoByIdAsync(accountId);
             return account;
         }
@@ -93,7 +55,6 @@ namespace WeGouSharp
         //根据公众号id查询(json)
         public async Task<string> GetAccountInfoByIdSerializedAsync(string accountId)
         {
-
             var account = await _wechatSogouApi.GetAccountInfoByIdAsync(accountId);
             return Tools.TryParseJson(account);
         }
@@ -102,6 +63,7 @@ namespace WeGouSharp
 
 
         #region 文章
+
         public async Task<string> SearchArticleAsync(string keyWord)
         {
             var article = await _wechatSogouApi.SearchArticleAsync(keyWord);
@@ -124,14 +86,8 @@ namespace WeGouSharp
             return article;
         }
 
-
         #endregion
 
-        //        public string GetOfficialAccountMessages(string accountPageUrl = "", string wechatId = "", string wechatName = "")
-        //        {
-        //            var rs = api.GetOfficialAccountMessages(accountPageUrl, wechatId, wechatName);
-        //            return Tools.TryParseJson(rs);
-        //        }
 
         /// <summary>
         /// 通过账号的url链接获取信息
@@ -162,7 +118,6 @@ namespace WeGouSharp
         /// <returns></returns>
         public async Task<List<BatchMessage>> GetOfficialAccountMessagesByIdAsync(string wechatId = "")
         {
-
             var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId);
             return rs;
         }
@@ -174,7 +129,6 @@ namespace WeGouSharp
         /// <returns></returns>
         public async Task<string> GetOfficialAccountMessagesByIdSerializedAsync(string wechatId = "")
         {
-
             var rs = await _wechatSogouApi.GetOfficialAccountMessagesAsync("", wechatId);
             return Tools.TryParseJson(rs);
         }
@@ -239,7 +193,6 @@ namespace WeGouSharp
 
         public async Task<string> GetArticleByCategoryIndexSerialized(int categoryIndex, int page)
         {
-
             var rs = await _wechatSogouApi.GetArticleByCategoryIndex(categoryIndex, page);
             return Tools.TryParseJson(rs);
         }
@@ -247,19 +200,16 @@ namespace WeGouSharp
 
         public async Task<List<Article>> GetAllRecentArticle(uint maxPage)
         {
-            var articles = await _wechatSogouApi.GetAllRecentArticle((int)maxPage);
+            var articles = await _wechatSogouApi.GetAllRecentArticle((int) maxPage);
             return articles;
         }
 
         public string GetAllRecentArticleSerialized(uint maxPage)
         {
-            var articles = _wechatSogouApi.GetAllRecentArticle((int)maxPage);
+            var articles = _wechatSogouApi.GetAllRecentArticle((int) maxPage);
             return Tools.TryParseJson(articles);
         }
 
         //add more
-
     }
-
-
 }
