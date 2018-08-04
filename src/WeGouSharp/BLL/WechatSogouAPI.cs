@@ -51,6 +51,13 @@ namespace WeGouSharp
                     //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
                     accountInfo.ProfilePicture = WebUtility.HtmlDecode(node
                         .SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
+                    
+                    if (accountInfo.ProfilePicture != null && accountInfo.ProfilePicture.StartsWith("//"))
+                    {
+                        accountInfo.ProfilePicture = "http:" + accountInfo.ProfilePicture;
+                    }
+
+
                     accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim()
                         .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
                     accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
@@ -398,11 +405,11 @@ namespace WeGouSharp
             try
             {
                 commentJson = JObject.Parse(commentText);
-                int ret = (int) commentJson.SelectToken("base_resp.ret");
+                int ret = (int)commentJson.SelectToken("base_resp.ret");
                 string errorMsg;
                 if (commentJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errorMsg = (string) commentJson.SelectToken("base_resp.errmsg");
+                    errorMsg = (string)commentJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
@@ -591,7 +598,7 @@ namespace WeGouSharp
 
             foreach (var li in targetArea)
             {
-                var article = new Article() {Imgs = new List<string>()};
+                var article = new Article() { Imgs = new List<string>() };
                 var account = new OfficialAccount();
                 try
                 {
