@@ -68,17 +68,17 @@ namespace WeGouSharp
                 && IsRunWithXServer()
             ) //linux with desktop environemnt
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/linux/");
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/mac/");
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/firefox");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_windows/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/");
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                     "Resource/firefox_windows/firefox.exe");
             }

@@ -16,6 +16,7 @@
     },
     "Argument": [
       "--headless",
+	    "--new-instance",
       "--MOZ_LOG_FILE=/tmp/Mozilla.log",
       "--MOZ_LOG=timestamp,rotate:200,nsHttp:5,nsSocketTransport:5,nsStreamPump:5,nsHostResolver:5"
     ]
