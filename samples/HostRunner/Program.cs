@@ -16,6 +16,7 @@ namespace HostRunner
             var rs = apiService.GetAccountInfoByIdAsync("bitsea").Result;
 
             var rss = apiService.GetAccountInfoByIdSerializedAsync("taosay").Result;
+            Console.WriteLine(rss);
             //var ws = new WeGouService(logger,configuration,yunDaMa);
 
             //var rs = ws.GetOfficialAccountMessagesByName("gzhu");
@@ -24,6 +25,6 @@ namespace HostRunner
 
             Console.ReadKey();
 
-        }
+         }
     }
 }
