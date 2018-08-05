@@ -1,5 +1,5 @@
 # WeGouSharp
-基于搜狗的微信公众号定向爬虫，使用C#实现，故取名WeGouSharp
+基于搜狗的微信公众号定向爬虫(接口)，使用C#实现，故取名WeGouSharp
 
 关于微信公共号爬虫的项目网上已经不少，然而基本大多数的都是使用Python实现
 鉴于鄙人是名.NET开发人员，于是又为广大微软系同胞创建了这个轮子，使用C#实现的微信爬虫
@@ -8,9 +8,23 @@
 
 *** 已经更新至dotnet core，可在linux或Mac下运行 ***
 
+*** 由于集成了Firefox作为引擎,所以包比较大..,如果想小点的可以查看faq文档[faq](docs/faq.md)***
+
 ## 安装/引用
-默认编译类型为控制台应用
-也可修改为动态链接库（dll）然后在程序之间添加引用接口
+~~默认编译类型为控制台应用~~
+~~也可修改为动态链接库（dll）然后在程序之间添加引用接口~~
+目前src里的已经改为netstandart2.0,
+dotnet core或者.NET framework 4.6.1+的可以直接引用该项目
+
+样例即sample/Hostrunner
+
+进入该项目,执行
+
+`dotnet build`
+然后进入bin目录中找到HostRunner.dll
+执行即可`dotnet HostRunner.dll`
+
+
 
 ## 添加依赖
 - HtmlAgilityPack //用于解析HTML
@@ -18,8 +32,11 @@
 - CoreCompat.System.Drawing
 - OpenCvSharp3-AnyCPU //验证码显示以及自动识别
 - Newtonsoft.Json //序列化
+- Selenium.WebDriver 
+- 等等
 
-以上引用可通过NuGet添加
+
+以上引用建议通过NuGet添加
 如(visual studio-->tools-->Nuget Package Manager-->Package Manager Console)：
 ```
 Install-Package HtmlAgilityPack
@@ -34,21 +51,17 @@ dotnet run
 
 
 ### 初始化 API
-在test中直接调用
+在sample项目中已经引用了该项目所以直接调用
 
 ```C#
-            //创建实例
-            WechatSogouApi Sogou = new WechatSogouApi();
 
-            var result = Sogou.SearchOfficialAccount("广州大学");
+             var apiService = new WeGouService();
+            var rs = apiService.GetAccountInfoByIdAsync("bitsea").Result;
 
-            //var result = Sogou.GetOfficialAccountMessages("","bitsea",""); 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-            Console.Write(json);
-            Console.ReadKey();
 ```
+
 运行截图：
-![运行结果](https://github.com/hoyho/WeGouSharp/blob/master/ScreenShot/SearchOfficialAccount.png?raw=true)
+![运行结果](https://github.com/hoyho/WeGouSharp/blob/master/docs/ScreenShot/SearchOfficialAccount.png?raw=true)
 
 ## 数据结构：
 
