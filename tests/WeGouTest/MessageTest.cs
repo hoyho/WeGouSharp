@@ -37,8 +37,8 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesBy()
         {
-            var rs = _api.GetOfficialAccountMessagesByUrlAsync();
-
+//            var rs = _api.GetOfficialAccountMessagesByUrlAsync().Result;
+//            rs.Count>
             //todo
         }
     }

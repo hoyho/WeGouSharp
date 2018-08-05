@@ -30,14 +30,5 @@ namespace WeGouTest
             Assert.True(rs.Count > 0);
         }
 
-
-        [Fact]
-        public void TestResolveArticleByHtml()
-        {
-            var rs = api.ResolveArticleByHtml("").Result;
-            var articles = JsonConvert.DeserializeObject<List<Article>>(rs);
-            Assert.True(rs.Length > 0);
-            Console.WriteLine(articles);
-        }
     }
 }

@@ -198,15 +198,15 @@ namespace WeGouSharp
         }
 
 
-        public async Task<List<Article>> GetAllRecentArticle(uint maxPage)
+        public async Task<List<Article>> GetAllRecentArticleAsync(uint maxPage)
         {
-            var articles = await _wechatSogouApi.GetAllRecentArticle((int) maxPage);
+            var articles = await _wechatSogouApi.GetAllRecentArticleAsync((int) maxPage);
             return articles;
         }
 
-        public string GetAllRecentArticleSerialized(uint maxPage)
+        public async Task<string> GetAllRecentArticleSerializedAsync(uint maxPage)
         {
-            var articles = _wechatSogouApi.GetAllRecentArticle((int) maxPage);
+            var articles = await _wechatSogouApi.GetAllRecentArticleAsync((int) maxPage);
             return Tools.TryParseJson(articles);
         }
 

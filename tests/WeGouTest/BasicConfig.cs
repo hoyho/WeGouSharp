@@ -1,13 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using log4net;
-using log4net.Config;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using WeGouSharp;
-using WeGouSharp.Model;
-using WeGouSharp.YunDaMa;
+﻿using WeGouSharp;
 
 namespace WeGouTest
 {

@@ -60,9 +60,9 @@ namespace WeGouSharp
         /// <returns></returns>
         private FirefoxDriver LaunchFireFox(FirefoxOptions option)
         {
-            var UseEmbededBrowser = _config.GetValue<bool>("Driver:UseEmbededBrowser");
+            var useEmbededBrowser = _config.GetValue<bool>("Driver:UseEmbededBrowser");
 
-            var browserPath = UseEmbededBrowser ? GetBrowserPath() : "";
+            var browserPath = useEmbededBrowser ? GetBrowserPath() : "";
              
              //folder containe geckodriver
             var geckodriverPath = GetGeckoDriverPath();

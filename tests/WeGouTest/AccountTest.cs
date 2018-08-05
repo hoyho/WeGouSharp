@@ -16,7 +16,7 @@ namespace WeGouTest
         public void TestGetAccountInfoById()
         {
             var rs = ApiService.GetAccountInfoByIdAsync("ME_volunteer").Result;
-            Assert.False(rs.Name.Contains("广州大学"));
+            Assert.True(rs.Name=="广大机电青协");
         }
         
     }

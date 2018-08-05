@@ -249,7 +249,7 @@ namespace WeGouSharp.Core
             else if (!string.IsNullOrEmpty(wechatName))
             {
                 var account = await GetAccountInfoByIdAsync(wechatName);
-                accountPageUrl = account.RecentArticleUrl;
+                accountPageUrl = account.AccountPageurl;
                 htmlStr = await _GetRecentArticle_Html(accountPageUrl);
             }
 
@@ -644,7 +644,7 @@ namespace WeGouSharp.Core
         /// </summary>
         /// <remarks>get_recent_article_url_by_index_all</remarks>
         /// <returns></returns>
-        public async Task<List<Article>> GetAllRecentArticle(int maxPage)
+        public async Task<List<Article>> GetAllRecentArticleAsync(int maxPage)
         {
             var listArticles = new List<Article>();
 
