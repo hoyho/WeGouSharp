@@ -1,0 +1,11 @@
+console app:
+
+<PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <OutputType>exe</OutputType>
+</PropertyGroup>
+
+classlib:
+<PropertyGroup>
+<TargetFramework>netstandard2.0</TargetFramework>
+</PropertyGroup>
