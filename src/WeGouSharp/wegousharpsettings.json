@@ -9,6 +9,7 @@
     "CodeType": 6
   },
   "Driver": {
+    "UseEmbededBrowser":true,
     "FireFoxPreference": {
       //open firefox input about:config , you can referer http://kb.mozillazine.org/Category:Preferences
       "browser.download.folderList": 1,

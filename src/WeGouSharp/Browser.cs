@@ -36,12 +36,13 @@ namespace WeGouSharp
                 foreach (var keyValuePair in preSettings)
                 {
                     ffProfile.SetPreference(keyValuePair.Key, keyValuePair.Value);
-//                    ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
-//                    ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
+                    //                    ffProfile.SetPreference("browser.download.folderList", 1); //0:desktop 1:download folder 2:custom
+                    //                    ffProfile.SetPreference("browser.helperApps.neverAsk.saveToDisk", "text/plain");
                 }
             }
 
-            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal};
+            FirefoxOptions ffopt = new FirefoxOptions() { Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal };
+
             _driver = LaunchFireFox(ffopt);
 
 
@@ -59,29 +60,12 @@ namespace WeGouSharp
         /// <returns></returns>
         private FirefoxDriver LaunchFireFox(FirefoxOptions option)
         {
-            var browserPath = "";
+            var UseEmbededBrowser = _config.GetValue<bool>("Driver:UseEmbededBrowser");
 
-            //folder containe geckodriver            
-            var geckodriverPath = "";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                && IsRunWithXServer()
-            ) //linux with desktop environemnt
-            {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/linux/");
-                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/mac/");
-                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/firefox");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/");
-                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "Resource/firefox_windows/firefox.exe");
-            }
+            var browserPath = UseEmbededBrowser ? GetBrowserPath() : "";
+             
+             //folder containe geckodriver
+            var geckodriverPath = GetGeckoDriverPath();
 
             //use embeded driver and geckodriver
             var fds = string.IsNullOrEmpty(geckodriverPath)
@@ -226,6 +210,50 @@ namespace WeGouSharp
             {
                 return false;
             }
+        }
+
+
+
+        private string GetBrowserPath()
+        {
+            var browserPath = string.Empty;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                              && IsRunWithXServer()
+                          ) //linux with desktop environemnt
+            {
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/firefox");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                    "Resource/firefox_windows/firefox.exe");
+            }
+            return browserPath;
+        }
+
+
+        private string GetGeckoDriverPath()
+        {
+            var geckodriverPath = string.Empty;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/linux/");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/mac/");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/");
+            }
+            return geckodriverPath;
         }
     }
 }
