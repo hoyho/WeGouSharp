@@ -1,0 +1,1 @@
+please put your mac version firefox in this folder
