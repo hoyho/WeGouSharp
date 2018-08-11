@@ -41,7 +41,7 @@ namespace WeGouSharp
                 }
             }
 
-            FirefoxOptions ffopt = new FirefoxOptions() { Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal };
+            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal};
 
             _driver = LaunchFireFox(ffopt);
 
@@ -63,8 +63,8 @@ namespace WeGouSharp
             var useEmbededBrowser = _config.GetValue<bool>("Driver:UseEmbededBrowser");
 
             var browserPath = useEmbededBrowser ? GetBrowserPath() : "";
-             
-             //folder containe geckodriver
+
+            //folder containe geckodriver
             var geckodriverPath = GetGeckoDriverPath();
 
             //use embeded driver and geckodriver
@@ -106,7 +106,15 @@ namespace WeGouSharp
                 {
                     throw new WechatSogouVcodeException("vcode")
                     {
-                        VisittingUrl = _driver.Url
+                        VisittingUrl = url
+                    };
+                }
+
+                if (pageSrc.Contains("为了您的安全请输入验证码") && _driver.Url.Contains("mp.weixin.qq.com"))
+                {
+                    throw new WechatWxVcodeException("vcode")
+                    {
+                        VisittingUrl = url
                     };
                 }
 
@@ -130,10 +138,55 @@ namespace WeGouSharp
 
 
         //微信文章页出现的验证码
-        public Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
+        public async Task HandleWxVcodeAsync(string vCodeUrl, bool useCloudDecode = true)
         {
-            _logger.Debug("vCodeUrl:" + vCodeUrl);
-            return Task.CompletedTask;
+            await GetPageAsync(vCodeUrl);
+
+            var base64Img = _driver.ExecuteScript(@"
+                var c = document.createElement('canvas');
+                var ctx = c.getContext('2d');
+                var img = document.getElementById('verify_img');
+                c.height=img.height;
+                c.width=img.width;
+                ctx.drawImage(img, 0, 0,img.width, img.height);
+                var base64String = c.toDataURL();
+                return base64String;
+                ") as string;
+
+            base64Img = base64Img?.Replace("data:image/png;base64,", "");
+
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WriteLine("请输入验证码：   ");
+                await DisplayImageFromBase64Async(base64Img);
+            }
+            else
+            {
+                Console.WriteLine(
+                    @"your system may not support showing image in console,if so, please open captcha from ./captcha/vcode");
+                var savePath = SaveImage(base64Img, "vcode.png");
+                var openImgCmd = "display " + savePath;
+                await openImgCmd.ExecuteShellAsync();
+                Console.WriteLine("请输入验证码：");
+            }
+
+            string verifyCode;
+            if (useCloudDecode)
+            {
+                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
+                verifyCode = decoder?.OnlineDecode("chaptcha/vcode.jpg");
+            }
+            else
+            {
+                verifyCode = Console.ReadLine();
+            }
+
+
+            var codeInput = _driver.FindElementById("input");
+            codeInput.SendKeys(verifyCode);
+
+            _driver.FindElementById("bt").Click();
         }
 
 
@@ -164,8 +217,10 @@ namespace WeGouSharp
             else
             {
                 Console.WriteLine(
-                    @"your system is not support showing image in console, please open captcha from ./captcha/vcode");
-                SaveImage(base64Img, "vcode.jpg");
+                    @"your system may not support showing image in console,if so, please open captcha from ./captcha/vcode");
+                var savePath = SaveImage(base64Img, "vcode.jpg");
+                var openImgCmd = "display " + savePath;
+                await openImgCmd.ExecuteShellAsync();
                 Console.WriteLine("请输入验证码：");
             }
 
@@ -213,14 +268,13 @@ namespace WeGouSharp
         }
 
 
-
         private string GetBrowserPath()
         {
             var browserPath = string.Empty;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                              && IsRunWithXServer()
-                          ) //linux with desktop environemnt
+                && IsRunWithXServer()
+            ) //linux with desktop environemnt
             {
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
             }
@@ -233,6 +287,7 @@ namespace WeGouSharp
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                     "Resource/firefox_windows/firefox.exe");
             }
+
             return browserPath;
         }
 
@@ -253,6 +308,7 @@ namespace WeGouSharp
             {
                 geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/");
             }
+
             return geckodriverPath;
         }
     }

@@ -20,7 +20,7 @@ namespace WeGouSharp.Core
         public static List<string> UserAgents;
 
 
-        protected WechatSogouBasic(ILog logger, Browser browser,IConfiguration configuration)
+        protected WechatSogouBasic(ILog logger, Browser browser, IConfiguration configuration)
         {
             _logger = logger;
             _browser = browser;
@@ -102,9 +102,8 @@ namespace WeGouSharp.Core
             try
             {
                 text = await _browser.GetPageWithoutVcodeAsync(url);
-                _tryCount = 1;
 
-                if (!text.Contains("为了保护你的网络安全，请输入验证码") && _tryCount <= 1) return text;
+                return text;
             }
             catch (WechatSogouVcodeException ve)
             {
@@ -115,6 +114,14 @@ namespace WeGouSharp.Core
                 }
 
                 text = await _browser.GetPageWithoutVcodeAsync(url);
+            }
+            catch (WechatWxVcodeException vxEx)
+            {
+                Console.WriteLine(vxEx.ToString());
+
+                await _browser.HandleWxVcodeAsync(vxEx.VisittingUrl,false);
+                text = await _browser.GetPageWithoutVcodeAsync(url);
+                
             }
             catch (Exception ex)
             {

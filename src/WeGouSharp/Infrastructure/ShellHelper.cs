@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace WeGouSharp.Infrastructure
 {
@@ -26,6 +27,29 @@ namespace WeGouSharp.Infrastructure
             process.WaitForExit();
 
             return result;
+        }
+        
+        
+        public static async Task ExecuteShellAsync(this string cmd)
+        {
+            var escapedArgs = cmd.Replace("\"", "\\\"");
+          await Task.Run( () =>
+            {
+                var process = new Process()
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "/bin/bash",
+                        Arguments = $"-c \"{escapedArgs}\"",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    }
+                };
+
+                process.Start();
+            });
+
         }
     }
 }

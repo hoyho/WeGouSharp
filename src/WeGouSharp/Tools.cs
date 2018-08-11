@@ -29,7 +29,7 @@ namespace WeGouSharp
         }
 
         //保存验证码
-        public static void SaveImage(string base64String, string imgName)
+        public static string SaveImage(string base64String, string imgName)
         {
             var path = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
             path = Path.Combine(path ?? throw new WechatSogouFileException(), "captcha");
@@ -45,6 +45,7 @@ namespace WeGouSharp
             byte[] imageBytes = Convert.FromBase64String(base64String);
 
             File.WriteAllBytes(imgPath, imageBytes);
+            return imgPath;
         }
 
 

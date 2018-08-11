@@ -42,6 +42,27 @@ namespace WeGouSharp
             set;
         }
     }
+    
+    
+    //遇到微信的验证码
+    class WechatWxVcodeException : WechatSogouException
+    {
+        public WechatWxVcodeException(string remark)
+        {
+            MoreInfo = remark;
+        }
+
+        public string MoreInfo
+        {
+            get;
+            set;
+        }
+        public string VisittingUrl
+        {
+            get;
+            set;
+        }
+    }
 
     ///验证码不通过
     class WechatSogouVcodeFailException : WechatSogouException
