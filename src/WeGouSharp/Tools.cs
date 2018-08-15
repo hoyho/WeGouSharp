@@ -2,8 +2,11 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WeGouSharp.Infrastructure;
+using WeGouSharp.Model;
 
 namespace WeGouSharp
 {
@@ -29,10 +32,10 @@ namespace WeGouSharp
         }
 
         //保存验证码
-        public static string SaveImage(string base64String, string imgName)
+        public static string SaveImage(string base64String, CaptchaType captchaType, string imgName)
         {
             var path = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
-            path = Path.Combine(path ?? throw new WechatSogouFileException(), "captcha");
+            path = Path.Combine(path ?? throw new WechatSogouFileException(), $"captcha/{captchaType}");
             //Check if directory exist
             if (!Directory.Exists(path))
             {
@@ -59,18 +62,42 @@ namespace WeGouSharp
             try
             {
                 var file = new FileInfo(srcPath);
+
+                var fullDestPath = new FileInfo(destPath).DirectoryName;
+                if (!Directory.Exists(fullDestPath))
+                {
+                    Directory.CreateDirectory(fullDestPath);
+                }
+
                 if (file.Exists)
                 {
                     // true is overwrite
                     file.CopyTo(destPath, true);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
                 throw new WechatSogouFileException();
             }
-            
+        }
+
+        public static async Task ShowVcodeAsync(string base64Img, string vCodeSavePath)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WriteLine("请输入验证码：\n");
+                await DisplayImageFromBase64Async(base64Img);
+            }
+            else
+            {
+                Console.WriteLine(
+                    @"your system may not support showing image in console,if so, please open captcha from ./captcha/{codeType}/vcode");
+                Console.WriteLine("请输入验证码：\n");
+
+                var openImgCmd = "display " + vCodeSavePath;
+                await openImgCmd.ExecuteShellAsync();
+            }
         }
 
 

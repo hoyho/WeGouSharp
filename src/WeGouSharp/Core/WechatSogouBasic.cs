@@ -15,6 +15,7 @@ namespace WeGouSharp.Core
     {
         private readonly ILog _logger;
         private readonly Browser _browser;
+        private readonly IConfiguration _configuration;
         private int _tryCount;
 
         public static List<string> UserAgents;
@@ -25,6 +26,7 @@ namespace WeGouSharp.Core
             _logger = logger;
             _browser = browser;
             UserAgents = configuration.GetSection("UserAgent").Get<List<string>>();
+            _configuration = configuration;
         }
 
 
@@ -48,7 +50,8 @@ namespace WeGouSharp.Core
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl);
+                var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl,enableOnlineDecode);
                 tryTime++;
                 text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
@@ -78,7 +81,9 @@ namespace WeGouSharp.Core
             }
             catch (WechatSogouVcodeException vCodeEx)
             {
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl);
+                var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
+
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl,enableOnlineDecode);
 
                 await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
@@ -108,8 +113,8 @@ namespace WeGouSharp.Core
             catch (WechatSogouVcodeException ve)
             {
                 Console.WriteLine(ve.ToString());
-
-                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl))
+                var enableOnlineDecode = _configuration.GetSection("EnableOnlineDecode").Get<bool>();
+                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl,enableOnlineDecode))
                 {
                 }
 
@@ -118,8 +123,9 @@ namespace WeGouSharp.Core
             catch (WechatWxVcodeException vxEx)
             {
                 Console.WriteLine(vxEx.ToString());
+                var enableOnlineDecode = _configuration.GetSection("EnableOnlineDecode").Get<bool>();
 
-                await _browser.HandleWxVcodeAsync(vxEx.VisittingUrl,false);
+                await _browser.HandleWxVcodeAsync(vxEx.VisittingUrl,enableOnlineDecode);
                 text = await _browser.GetPageWithoutVcodeAsync(url);
                 
             }

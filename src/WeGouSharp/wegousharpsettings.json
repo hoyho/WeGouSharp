@@ -1,12 +1,12 @@
 ﻿{
+  "EnableOnlineDecode":true,
   "YunDaMa": {
     "HomePage": "http://yundama.com",
     "UserName": "xx",
     "PassWord": "xx",
     "AppId": "1",
     "AppKey": "22cc5376925e9387a23cf797cb9ba745",
-    "TimeOut": "60",
-    "CodeType": 6
+    "TimeOut": "60"
   },
   "Driver": {
     "UseEmbededBrowser":true,

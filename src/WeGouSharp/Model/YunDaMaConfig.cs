@@ -10,9 +10,7 @@
         public string UserName { get; set; }
 
         public string PassWord { get; set; }
-
-        public string CodeType { get; set; }
-
+        
         public string AppKey { get; set; }
 
         public string AppId { get; set; }

@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using log4net;
 using Newtonsoft.Json;
@@ -12,7 +13,7 @@ namespace WeGouSharp.YunDaMa
     /// <summary>
     /// 云打码实现类
     /// </summary>
-    public class OnlineDecoder : IDecode
+    public class OnlineDecoder : IDecoder
     {
         private int _tryTime = 1;
 
@@ -21,36 +22,74 @@ namespace WeGouSharp.YunDaMa
         private YunDaMaConfig Conf { get; set; }
         private ILog _logger;
 
-       
-        public OnlineDecoder(YunDaMaConfig yConfig,ILog logger)
+
+        public OnlineDecoder(YunDaMaConfig yConfig, ILog logger)
         {
             Conf = yConfig;
             _logger = logger;
         }
 
-        public string OnlineDecode(string imageLocation)
+        public string Decode(string imageLocation, CaptchaType captchaType)
         {
             var userName = Conf.UserName;
             var psw = Conf.PassWord;
-            var codetype = Conf.CodeType;
             var appid = Conf.AppId;
             var appkey = Conf.AppKey;
             var timeout = Conf.TimeOut;
+            var codeType = ((int) captchaType).ToString();
 
-            var uploadResult =  PostForm(userName,psw,codetype,"upload",appid,appkey,timeout,"captcha/vcode.jpg" );
-            var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(uploadResult);
-            if (ydm!=null && !string.IsNullOrEmpty(ydm.text))
+            var codePath = "";
+            var exePath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
+          
+
+            if (captchaType == CaptchaType.Sogou)
             {
-                Tools.CopytoTrain("captcha/vcode.jpg",$"trainingFiles/{ydm.text}.jpg");
-                return ydm.text;//已经上传过，直接读取结果
+                codePath = Path.Combine(exePath ?? throw new WechatSogouVcodeException("get vode path fail"),
+                    $"captcha/{captchaType}/vcode.jpg");
+            }
+            else if (captchaType == CaptchaType.WeiXin)
+            {
+                codePath = Path.Combine(exePath ?? throw new WechatSogouVcodeException("get vode path fail"),
+                    $"captcha/{captchaType}/vcode.png");
+            }
+
+            var uploadResult = PostForm(userName, psw, codeType, "upload", appid, appkey, timeout, codePath);
+
+            var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(uploadResult);
+            if (ydm != null && !string.IsNullOrEmpty(ydm.text))
+            {
+                var trainingFilePath = "";
+                if (captchaType == CaptchaType.Sogou)
+                {
+                    trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.jpg";
+                }else if (captchaType == CaptchaType.WeiXin)
+                {
+                    trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.png";
+                }
+                
+                Tools.CopytoTrain(codePath, trainingFilePath);
+                return ydm.text; //已经上传过，直接读取结果
             }
 
             _tryTime = 0; //重置，下面会用到
-            var decodeResult =  GetDecodeResult(ydm?.cid);
+            var decodeResult = GetDecodeResult(ydm?.cid);
             ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(decodeResult);
-            Tools.CopytoTrain("captcha/vcode.jpg",$"trainingFiles/{ydm.text}.jpg");
-            return ydm.text;
 
+
+            if (ydm != null && !string.IsNullOrEmpty(ydm.text))
+            {
+                var trainingFilePath = "";
+                if (captchaType == CaptchaType.Sogou)
+                {
+                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.jpg";
+                }else if (captchaType == CaptchaType.WeiXin)
+                {
+                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.png";
+                }
+                Tools.CopytoTrain(codePath, trainingFilePath);
+            }
+
+            return ydm?.text;
         }
 
         public void SetTryLimit(int max)
@@ -141,7 +180,9 @@ namespace WeGouSharp.YunDaMa
                 requestStream.Write(trailer, 0, trailer.Length);
                 requestStream.Close();
 
-                using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream() ?? throw new WechatSogouRequestException()))
+                using (StreamReader reader =
+                    new StreamReader(request.GetResponse().GetResponseStream() ??
+                                     throw new WechatSogouRequestException()))
                 {
                     string result = reader.ReadToEnd();
                     return result;
@@ -169,7 +210,7 @@ namespace WeGouSharp.YunDaMa
             var netHelper = new HttpHelper();
             var json = netHelper.Get(requestUrl);
             var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(json);
-            if (ydm?.ret!=0 && _tryTime<_maxTry) //结果未出。继续等待
+            if (ydm?.ret != 0 && _tryTime < _maxTry) //结果未出。继续等待
             {
                 _tryTime += 1;
                 Thread.Sleep(3000);
@@ -178,6 +219,5 @@ namespace WeGouSharp.YunDaMa
 
             return json;
         }
-        
     }
 }

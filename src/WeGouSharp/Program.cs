@@ -60,7 +60,7 @@ namespace WeGouSharp
                 .AddSingleton<IConfiguration>(config)
                 .AddSingleton(logger)
                 .AddSingleton(config.GetSection("YunDaMa").Get<YunDaMaConfig>())
-                .AddScoped<IDecode, OnlineDecoder>()
+                .AddScoped<IDecoder, OnlineDecoder>()
                 .AddScoped<WeGouService, WeGouService>()
                 .AddSingleton<Browser, Browser>()
                 .BuildServiceProvider();

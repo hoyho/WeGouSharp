@@ -10,6 +10,7 @@ using OpenQA.Selenium.Firefox;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Infrastructure;
+using WeGouSharp.Model;
 
 namespace WeGouSharp
 {
@@ -155,30 +156,18 @@ namespace WeGouSharp
 
             base64Img = base64Img?.Replace("data:image/png;base64,", "");
 
+            string vCodeSavePath = SaveImage(base64Img, CaptchaType.WeiXin, "vcode.png");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Console.WriteLine("请输入验证码：   ");
-                await DisplayImageFromBase64Async(base64Img);
-            }
-            else
-            {
-                Console.WriteLine(
-                    @"your system may not support showing image in console,if so, please open captcha from ./captcha/vcode");
-                var savePath = SaveImage(base64Img, "vcode.png");
-                var openImgCmd = "display " + savePath;
-                await openImgCmd.ExecuteShellAsync();
-                Console.WriteLine("请输入验证码：");
-            }
 
             string verifyCode;
             if (useCloudDecode)
             {
-                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
-                verifyCode = decoder?.OnlineDecode("chaptcha/vcode.jpg");
+                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecoder)) as IDecoder;
+                verifyCode = decoder?.Decode(vCodeSavePath, CaptchaType.WeiXin);
             }
             else
             {
+                await ShowVcodeAsync(base64Img, vCodeSavePath);
                 verifyCode = Console.ReadLine();
             }
 
@@ -208,30 +197,18 @@ namespace WeGouSharp
 
             base64Img = base64Img?.Replace("data:image/png;base64,", "");
 
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Console.WriteLine("请输入验证码：   ");
-                await DisplayImageFromBase64Async(base64Img);
-            }
-            else
-            {
-                Console.WriteLine(
-                    @"your system may not support showing image in console,if so, please open captcha from ./captcha/vcode");
-                var savePath = SaveImage(base64Img, "vcode.jpg");
-                var openImgCmd = "display " + savePath;
-                await openImgCmd.ExecuteShellAsync();
-                Console.WriteLine("请输入验证码：");
-            }
+            string vCodeSavePath = SaveImage(base64Img, CaptchaType.Sogou, "vcode.jpg");
+            ;
 
             string verifyCode;
             if (useCloudDecode)
             {
-                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecode)) as IDecode;
-                verifyCode = decoder?.OnlineDecode("chaptcha/vcode.jpg");
+                var decoder = ServiceProviderAccessor.ServiceProvider.GetService(typeof(IDecoder)) as IDecoder;
+                verifyCode = decoder?.Decode(vCodeSavePath, CaptchaType.Sogou);
             }
             else
             {
+                await ShowVcodeAsync(base64Img, vCodeSavePath);
                 verifyCode = Console.ReadLine();
             }
 
