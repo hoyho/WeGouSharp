@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using log4net;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WeGouSharp.Model;
+using WeGouSharp.Model.OriginalInfo;
 
 namespace WeGouSharp.Core
 {
@@ -51,7 +55,7 @@ namespace WeGouSharp.Core
             catch (WechatSogouVcodeException vCodeEx)
             {
                 var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl,enableOnlineDecode);
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
                 tryTime++;
                 text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
@@ -83,7 +87,7 @@ namespace WeGouSharp.Core
             {
                 var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
 
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl,enableOnlineDecode);
+                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
 
                 await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
@@ -114,7 +118,7 @@ namespace WeGouSharp.Core
             {
                 Console.WriteLine(ve.ToString());
                 var enableOnlineDecode = _configuration.GetSection("EnableOnlineDecode").Get<bool>();
-                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl,enableOnlineDecode))
+                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl, enableOnlineDecode))
                 {
                 }
 
@@ -125,9 +129,8 @@ namespace WeGouSharp.Core
                 Console.WriteLine(vxEx.ToString());
                 var enableOnlineDecode = _configuration.GetSection("EnableOnlineDecode").Get<bool>();
 
-                await _browser.HandleWxVcodeAsync(vxEx.VisittingUrl,enableOnlineDecode);
+                await _browser.HandleWxVcodeAsync(vxEx.VisittingUrl, enableOnlineDecode);
                 text = await _browser.GetPageWithoutVcodeAsync(url);
-                
             }
             catch (Exception ex)
             {
@@ -185,8 +188,9 @@ namespace WeGouSharp.Core
             var msglist = match.Groups[1].Value;
 
             msglist = msglist + "}";
-            var msgdict = WebUtility.HtmlDecode(msglist);
-            return msgdict;
+            return msglist;
+            //var msgdict = WebUtility.HtmlDecode(msglist);
+            //return msgdict;
         }
 
 
@@ -203,116 +207,67 @@ namespace WeGouSharp.Core
             string uin = encryp.uin;
             string key = encryp.key;
 
-            JObject jo = JObject.Parse(jsonText); //把json字符串转化为json对象  
-            JArray msgList = (JArray) jo.GetValue("list");
-            foreach (var jToken1 in msgList)
+            var root = JsonConvert.DeserializeObject<MsgRoot>(jsonText);
+
+            var msgs = HandleHtmlCode(root.list);
+            msgs.ForEach(m =>
             {
-                var msg = (JObject) jToken1;
-                BatchMessage aMessage = new BatchMessage();
-                JObject commMsgInfo = (JObject) msg.GetValue("comm_msg_info");
-                aMessage.Meaasgeid = (int) commMsgInfo.GetValue("id");
-                aMessage.SendDate = (string) commMsgInfo.GetValue("datetime");
-                aMessage.Type = (string) commMsgInfo.GetValue("type");
-                switch (aMessage.Type)
+                var message = new BatchMessage()
+                {
+                    Author = m.app_msg_ext_info.author,
+                    Meaasgeid = m.comm_msg_info.id,
+                    SendDate = m.comm_msg_info.datetime.ToString(),
+                    Type = m.comm_msg_info.type.ToString()
+                };
+
+                switch (message.Type)
                 {
                     case "1": //文字
-                        aMessage.Content = (string) commMsgInfo.GetValue("");
+                        message.Content = m.comm_msg_info.content;
                         break;
                     case "3": //图片
-                        aMessage.ImageUrl = "https://mp.weixin.qq.com/mp/getmediadata?__biz=" + biz +
-                                            "&type=img&mode=small&msgid=" + aMessage.Meaasgeid + "&uin=" + uin +
-                                            "&key=" + key;
+                        message.ImageUrl =
+                            $"https://mp.weixin.qq.com/mp/getmediadata?biz={biz}&type=img&mode=small&msgid={message.Meaasgeid}&uin=uin&key={key}";
                         break;
                     case "34": //音频
-                        aMessage.PlayLength = (string) msg.SelectToken("voice_msg_ext_info.play_length");
-                        aMessage.FileId = (int) msg.SelectToken("voice_msg_ext_info.fileid");
-                        aMessage.AudioSrc = "https://mp.weixin.qq.com/mp/getmediadata?biz=" + biz +
-                                            "&type=voice&msgid=" + aMessage.Meaasgeid + "&uin=" + uin + "&key=" + key;
+                        message.PlayLength = m.voice_msg_ext_info.play_length;
+                        message.FileId = m.voice_msg_ext_info.fileid;
+                        message.AudioSrc =
+                            $"https://mp.weixin.qq.com/mp/getmediadata?biz={biz}&type=voice&msgid={message.Meaasgeid}&uin={uin}&key={key}";
                         break;
                     case "49": //图文
-                        JObject appMsgExtInfo = (JObject) msg.GetValue("app_msg_ext_info");
-                        string url = (string) appMsgExtInfo.GetValue("content_url");
-                        if (!String.IsNullOrEmpty(url))
+                        message.ContentUrl = m.app_msg_ext_info.content_url.Contains("http://mp.weixin.qq.com")
+                            ? m.app_msg_ext_info.content_url
+                            : "http://mp.weixin.qq.com" + m.app_msg_ext_info.content_url;
+                        message.Main = 1;
+                        message.Title = m.app_msg_ext_info.title;
+                        message.Digest = m.app_msg_ext_info.digest;
+                        message.FileId = m.app_msg_ext_info.fileid;
+                        message.SourceUrl = m.app_msg_ext_info.source_url;
+                        message.Cover = m.app_msg_ext_info.cover;
+                        message.Author = m.app_msg_ext_info.author;
+                        message.CopyrightStat = m.app_msg_ext_info.copyright_stat.ToString();
+                        messages.Add(message);
+                        if (m.app_msg_ext_info.is_multi == 1) //源群发消息文章还包含多个副文章
                         {
-                            if (!url.Contains("http://mp.weixin.qq.com"))
-                            {
-                                url = "http://mp.weixin.qq.com" + url;
-                            }
-                        }
-                        else
-                        {
-                            url = "";
-                        }
-
-                        aMessage.Main = 1;
-                        aMessage.Title = (string) appMsgExtInfo.GetValue("title");
-                        aMessage.Digest = (string) appMsgExtInfo.GetValue("digest");
-                        aMessage.FileId = (int) appMsgExtInfo.GetValue("fileid");
-                        aMessage.ContentUrl = url;
-                        aMessage.SourceUrl = (string) appMsgExtInfo.GetValue("source_url");
-                        aMessage.Cover = (string) appMsgExtInfo.GetValue("cover");
-                        aMessage.Author = (string) appMsgExtInfo.GetValue("author");
-                        aMessage.CopyrightStat = (string) appMsgExtInfo.GetValue("copyright_stat");
-                        messages.Add(aMessage);
-
-                        if ((int) appMsgExtInfo.GetValue("is_multi") == 1)
-                        {
-                            JArray multiAppMsgItemList = (JArray) appMsgExtInfo.GetValue("multi_app_msg_item_list");
-                            var moreMessage = new BatchMessage();
-                            foreach (var jToken in multiAppMsgItemList)
-                            {
-                                var subMsg = (JObject) jToken;
-                                url = (string) subMsg.GetValue("content_url");
-                                if (!string.IsNullOrEmpty(url))
-                                {
-                                    if (!url.Contains("http://mp.weixin.qq.com"))
-                                    {
-                                        url = "http://mp.weixin.qq.com" + url;
-                                    }
-                                }
-                                else
-                                {
-                                    url = "";
-                                }
-
-                                moreMessage.Title = (string) subMsg.GetValue("title");
-                                moreMessage.Digest = (string) subMsg.GetValue("digest");
-                                moreMessage.FileId = (int) subMsg.GetValue("fileid");
-                                moreMessage.ContentUrl = url;
-                                moreMessage.SourceUrl = (string) subMsg.GetValue("source_url");
-                                moreMessage.Cover = (string) subMsg.GetValue("cover");
-                                moreMessage.Author = (string) subMsg.GetValue("author");
-                                moreMessage.CopyrightStat = (string) subMsg.GetValue("copyright_stat");
-                                messages.Add(moreMessage);
-                            }
+                            var subMsgs = ParseSubArticle(m.app_msg_ext_info.multi_app_msg_item_list);
+                            messages.AddRange(subMsgs);
                         }
 
-                        continue;
-
+                        break;
                     case "62": //视频
-                        aMessage.CdnVideoId = (string) msg.SelectToken("video_msg_ext_info.cdn_videoid");
-                        aMessage.Thumb = (string) msg.SelectToken("video_msg_ext_info.thumb");
-                        aMessage.VideoSrc = "https://mp.weixin.qq.com/mp/getcdnvideourl?__biz=" + biz +
-                                            "&cdn_videoid=" +
-                                            aMessage.CdnVideoId + "&thumb=" + aMessage.Thumb + "&uin=" + "&key=" + key;
+                        message.CdnVideoId = m.video_msg_ext_info.cdn_videoid;
+                        message.Thumb = m.video_msg_ext_info.thumb;
+                        message.VideoSrc =
+                            $"https://mp.weixin.qq.com/mp/getcdnvideourl?biz={biz}&cdn_videoid={message.CdnVideoId}&thumb={message.Thumb}&uin=&key={key}";
                         break;
                 }
+            });
 
-                messages.Add(aMessage);
-            }
 
-            // 删除搜狗本身携带的空数据
-            var finalMessages = new List<BatchMessage>();
-            foreach (var m in messages)
-            {
-                if (m.Type == "49" && string.IsNullOrEmpty(m.ContentUrl))
-                {
-                }
-                else
-                {
-                    finalMessages.Add(m);
-                }
-            }
+            // 删除搜狗本身携带的空数据,(type=49以及contentUrl为空的是无效数据)
+            var finalMessages = messages.Where(msg => msg.Type != "49"
+                                                      && !string.IsNullOrEmpty(msg.ContentUrl)).ToList();
 
             return finalMessages;
         }
@@ -365,6 +320,70 @@ namespace WeGouSharp.Core
             {
                 return "";
             }
+        }
+
+
+        /// <summary>
+        /// 把源MultiAppMsgItemList列表(副图文)转换为群发消息对象BatchMessage
+        /// </summary>
+        /// <param name="multiAppMsgItemLists"></param>
+        /// <returns></returns>
+        private List<BatchMessage> ParseSubArticle(List<MultiAppMsgItemList> multiAppMsgItemLists)
+        {
+            var articleList = new List<BatchMessage>();
+            foreach (var msg in multiAppMsgItemLists)
+            {
+                articleList.Add(new BatchMessage
+                {
+                    ContentUrl = msg.content_url.Contains("http://mp.weixin.qq.com")
+                        ? msg.content_url
+                        : "http://mp.weixin.qq.com" + msg.content_url,
+                    Title = msg.title,
+                    Digest = msg.digest,
+                    FileId = msg.fileid,
+                    SourceUrl = msg.source_url,
+                    Cover = msg.cover,
+                    Author = msg.author,
+                    CopyrightStat = msg.copyright_stat.ToString()
+                });
+            }
+
+            return articleList;
+        }
+
+
+        /// <summary>
+        /// 把所有string属性都进行htmldecode,还原原始信息
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private List<Msg> HandleHtmlCode(List<Msg> list)
+        {
+            var results = new List<Msg>();
+            foreach (var element in list)
+            {
+                element.app_msg_ext_info.content = WebUtility.HtmlDecode(element.app_msg_ext_info.content);
+                element.app_msg_ext_info.content_url = WebUtility.HtmlDecode(element.app_msg_ext_info.content_url);
+                element.app_msg_ext_info.cover = WebUtility.HtmlDecode(element.app_msg_ext_info.cover);
+                element.app_msg_ext_info.digest = WebUtility.HtmlDecode(element.app_msg_ext_info.digest);
+                element.app_msg_ext_info.play_url = WebUtility.HtmlDecode(element.app_msg_ext_info.play_url);
+                element.app_msg_ext_info.source_url = WebUtility.HtmlDecode(element.app_msg_ext_info.source_url);
+                element.app_msg_ext_info.title = WebUtility.HtmlDecode(element.app_msg_ext_info.title);
+
+                element.app_msg_ext_info.multi_app_msg_item_list.ForEach(sub =>
+                {
+                    sub.content = WebUtility.HtmlDecode(sub.content);
+                    sub.content_url = WebUtility.HtmlDecode(sub.content_url);
+                    sub.cover = WebUtility.HtmlDecode(sub.cover);
+                    sub.digest = WebUtility.HtmlDecode(sub.digest);
+                    sub.play_url = WebUtility.HtmlDecode(sub.play_url);
+                    sub.source_url = WebUtility.HtmlDecode(sub.source_url);
+                    sub.title = WebUtility.HtmlDecode(sub.title);
+                });
+                results.Add(element);
+            }
+
+            return results;
         }
     }
 }
