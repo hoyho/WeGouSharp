@@ -266,8 +266,8 @@ namespace WeGouSharp.Core
 
 
             // 删除搜狗本身携带的空数据,(type=49以及contentUrl为空的是无效数据)
-            var finalMessages = messages.Where(msg => msg.Type != "49"
-                                                      && !string.IsNullOrEmpty(msg.ContentUrl)).ToList();
+            var finalMessages = messages.Where(msg => !(msg.Type == "49"
+                                                        && string.IsNullOrEmpty(msg.ContentUrl))).ToList();
 
             return finalMessages;
         }

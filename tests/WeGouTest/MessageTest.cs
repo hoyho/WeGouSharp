@@ -25,6 +25,13 @@ namespace WeGouTest
         }
 
         [Fact]
+        public void TestGetOfficialAccountMessagesByIdSerializedAsync()
+        {
+            var rs = _api.GetOfficialAccountMessagesByIdSerializedAsync("prdcweixin").Result;
+            Console.WriteLine(rs);
+        }
+
+        [Fact]
         public void TestGetOfficialAccountMessagesByName()
         {
             var test = _api.GetOfficialAccountMessagesByNameAsync("和菜头").Result;
@@ -37,8 +44,8 @@ namespace WeGouTest
         [Fact]
         public void TestGetOfficialAccountMessagesBy()
         {
-//            var rs = _api.GetOfficialAccountMessagesByUrlAsync().Result;
-//            rs.Count>
+            //            var rs = _api.GetOfficialAccountMessagesByUrlAsync().Result;
+            //            rs.Count>
             //todo
         }
     }
