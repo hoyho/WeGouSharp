@@ -149,7 +149,7 @@ namespace WeGouSharp.Core
         /// <returns></returns>
         protected OfficialAccount _ResolveOfficialAccount(string htmlText, string url)
         {
-            var officialAccount = new OfficialAccount {AccountPageurl = url};
+            var officialAccount = new OfficialAccount { AccountPageurl = url };
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlText);
             var profileInfoArea = doc.DocumentNode.SelectSingleNode("//div[@class='profile_info_area']");
@@ -251,6 +251,7 @@ namespace WeGouSharp.Core
                         if (m.app_msg_ext_info.is_multi == 1) //源群发消息文章还包含多个副文章
                         {
                             var subMsgs = ParseSubArticle(m.app_msg_ext_info.multi_app_msg_item_list);
+                            subMsgs.ForEach(subMsg => subMsg.SendDate = message.SendDate);
                             messages.AddRange(subMsgs);
                         }
 
@@ -298,10 +299,10 @@ namespace WeGouSharp.Core
             {
                 JObject relateJson = JObject.Parse(relatedText);
                 string errMsg;
-                int ret = (int) relateJson.SelectToken("base_resp.ret");
+                int ret = (int)relateJson.SelectToken("base_resp.ret");
                 if (relateJson.SelectToken("base_resp.errmsg") != null)
                 {
-                    errMsg = (string) relateJson.SelectToken("base_resp.errmsg");
+                    errMsg = (string)relateJson.SelectToken("base_resp.errmsg");
                 }
                 else
                 {
