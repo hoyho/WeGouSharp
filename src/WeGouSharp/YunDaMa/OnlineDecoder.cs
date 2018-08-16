@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using Newtonsoft.Json;
+using RestSharp;
 using WeGouSharp.Model;
 
 namespace WeGouSharp.YunDaMa
@@ -36,11 +37,11 @@ namespace WeGouSharp.YunDaMa
             var appid = Conf.AppId;
             var appkey = Conf.AppKey;
             var timeout = Conf.TimeOut;
-            var codeType = ((int) captchaType).ToString();
+            var codeType = ((int)captchaType).ToString();
 
             var codePath = "";
             var exePath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location); //Path
-          
+
 
             if (captchaType == CaptchaType.Sogou)
             {
@@ -53,25 +54,26 @@ namespace WeGouSharp.YunDaMa
                     $"captcha/{captchaType}/vcode.png");
             }
 
-            var uploadResult = PostForm(userName, psw, codeType, "upload", appid, appkey, timeout, codePath);
+            var uploadResult = RestUpload(userName, psw, codeType, "upload", appid, appkey, timeout, codePath);
 
             var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(uploadResult);
-            if (ydm != null && !string.IsNullOrEmpty(ydm.text))
+            if (ydm != null && !string.IsNullOrEmpty(ydm.text)) //如果已经上传过会立即得到结果
             {
                 var trainingFilePath = "";
                 if (captchaType == CaptchaType.Sogou)
                 {
                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.jpg";
-                }else if (captchaType == CaptchaType.WeiXin)
+                }
+                else if (captchaType == CaptchaType.WeiXin)
                 {
                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.png";
                 }
-                
+
                 Tools.CopytoTrain(codePath, trainingFilePath);
                 return ydm.text; //已经上传过，直接读取结果
             }
 
-            _tryTime = 0; //重置，下面会用到
+
             var decodeResult = GetDecodeResult(ydm?.cid);
             ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(decodeResult);
 
@@ -81,10 +83,11 @@ namespace WeGouSharp.YunDaMa
                 var trainingFilePath = "";
                 if (captchaType == CaptchaType.Sogou)
                 {
-                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.jpg";
-                }else if (captchaType == CaptchaType.WeiXin)
+                    trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.jpg";
+                }
+                else if (captchaType == CaptchaType.WeiXin)
                 {
-                     trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.png";
+                    trainingFilePath = $"trainingFiles/{captchaType}/{ydm.text}.png";
                 }
                 Tools.CopytoTrain(codePath, trainingFilePath);
             }
@@ -125,7 +128,7 @@ namespace WeGouSharp.YunDaMa
                 {"appkey", appkey},
                 {"timeout", timeOut}
             };
-            NameValueCollection files = new NameValueCollection {{"file", filePath}};
+            NameValueCollection files = new NameValueCollection { { "file", filePath } };
 
             string boundary = "----------------------------" + DateTime.Now.Ticks.ToString("x");
             // The first boundary
@@ -135,7 +138,7 @@ namespace WeGouSharp.YunDaMa
             // The first time it itereates, we need to make sure it doesn't put too many new paragraphs down or it completely messes up poor webbrick
             System.Text.Encoding.ASCII.GetBytes("--" + boundary + "\r\n");
             // Create the request and set parameters
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(APIUrl + "api.php");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(APIUrl + "api.php");
             request.ContentType = "multipart/form-data; boundary=" + boundary;
             request.Method = "POST";
             request.KeepAlive = true;
@@ -190,7 +193,7 @@ namespace WeGouSharp.YunDaMa
             }
             catch (Exception ex)
             {
-                _logger.Info(ex.ToString());
+                _logger.Error(ex.ToString());
                 _tryTime += 1;
                 return _tryTime > _maxTry
                     ? ""
@@ -199,22 +202,65 @@ namespace WeGouSharp.YunDaMa
             }
         }
 
+        public static string RestUpload(string userName, string passWord, string codeType, string action, string appid,
+            string appkey, string timeOut, string filePath)
+        {
+            string apiUrl = "http://api.yundama.com/";
+            try
+            {
+                var client = new RestClient(apiUrl);
+
+                var request = new RestRequest("api.php", Method.POST);
+                request.AddParameter("username", userName);
+                request.AddParameter("password", passWord);
+                request.AddParameter("codetype", codeType);
+                request.AddParameter("method", action);
+                request.AddParameter("appid", appid);
+                request.AddParameter("appkey", appkey);
+                request.AddParameter("timeout", timeOut);
+
+                // add files to upload (works with compatible verbs)
+                request.AddFile("file", filePath);
+
+                // execute the request
+                IRestResponse response = client.Execute(request);
+                var resp = response.Content; // raw content as string
+                Console.WriteLine(resp);
+                return resp;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
         /// <summary>
         /// 获取识别结果
         /// </summary>
         /// <param name="cid"></param>
         /// <returns></returns>
-        private string GetDecodeResult(string cid)
+        private string GetDecodeResult(string cid, int tryTime = 0)
         {
+            int maxTry = 5;
             var requestUrl = $"http://api.yundama.com/api.php?cid={cid}&method=result";
             var netHelper = new HttpHelper();
+
+            if (tryTime > maxTry)
+            {
+                Console.WriteLine("get decode result exceed max try time!!");
+                throw new WechatSogouRequestException();
+            }
+
             var json = netHelper.Get(requestUrl);
             var ydm = JsonConvert.DeserializeObject<YunDaMaResponse>(json);
-            if (ydm?.ret != 0 && _tryTime < _maxTry) //结果未出。继续等待
+
+            if (ydm?.ret != 0 && tryTime < maxTry) //结果未出。继续等待
             {
-                _tryTime += 1;
-                Thread.Sleep(3000);
-                json = GetDecodeResult(cid);
+                tryTime += 1;
+                Thread.Sleep(4000);
+                json = GetDecodeResult(cid,tryTime);
             }
 
             return json;

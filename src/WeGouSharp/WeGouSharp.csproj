@@ -16,6 +16,7 @@
     <PackageReference Include="Selenium.WebDriver" Version="3.11.2" />
     <PackageReference Include="OpenCvSharp3-AnyCPU" Version="3.3.1.20171117" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
+        <PackageReference Include="RestSharp" Version="106.3.1" />
     <!--
             <PackageReference Include="OpenCvSharp3-WithoutDll" Version="3.3.1.20171117" /> 
         -->

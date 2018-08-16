@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using log4net;
@@ -56,6 +57,7 @@ namespace WeGouSharp.Core
             {
                 var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
                 await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
+                Thread.Sleep(4000);
                 tryTime++;
                 text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
