@@ -66,12 +66,13 @@ namespace WeGouSharp
             var browserPath = useEmbededBrowser ? GetBrowserPath() : "";
 
             //folder containe geckodriver
-            var geckodriverPath = GetGeckoDriverPath();
+            var geckodriverFullPath = GetGeckoDriverPath();
+            var pathArray = geckodriverFullPath.Split(',');
 
             //use embeded driver and geckodriver
-            var fds = string.IsNullOrEmpty(geckodriverPath)
+            var fds = string.IsNullOrEmpty(geckodriverFullPath)
                 ? FirefoxDriverService.CreateDefaultService()
-                : FirefoxDriverService.CreateDefaultService(geckodriverPath);
+                : FirefoxDriverService.CreateDefaultService(pathArray[0],pathArray[1]);
 
             if (!string.IsNullOrWhiteSpace(browserPath))
             {
@@ -269,21 +270,25 @@ namespace WeGouSharp
         }
 
 
+        //Return geckodriverPath and filename,seperated by comma ,
         private string GetGeckoDriverPath()
         {
             var geckodriverPath = string.Empty;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/linux/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/linux/")
+                                  + "," + "geckodriver.sh";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/mac/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/mac/")
+                                  + "," + "geckodriver.sh";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/");
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/")
+                                  + "," + ":geckodriver.exe";
             }
 
             return geckodriverPath;

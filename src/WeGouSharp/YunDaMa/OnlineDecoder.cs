@@ -261,6 +261,7 @@ namespace WeGouSharp.YunDaMa
                 tryTime += 1;
                 Thread.Sleep(4000);
                 json = GetDecodeResult(cid,tryTime);
+                Console.WriteLine($"Code result:{json}, tryTime:{tryTime}");
             }
 
             return json;
