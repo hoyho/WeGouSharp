@@ -1,1 +1,1 @@
-please put your mac version firefox in this folder
+please install latest version firefox ,eg: Mozilla Firefox 62.0
