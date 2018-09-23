@@ -61,7 +61,11 @@ dotnet run
 ```
 
 运行截图：
-![运行结果](https://github.com/hoyho/WeGouSharp/blob/master/docs/ScreenShot/SearchOfficialAccount.png?raw=true)
+osx
+![run_sample_on_mac](docs/ScreenShot/run_sample.png)
+
+windows
+![运行结果](docs/ScreenShot/SearchOfficialAccount.png?raw=true)
 
 ## 数据结构：
 
