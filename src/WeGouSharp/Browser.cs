@@ -258,7 +258,7 @@ namespace WeGouSharp
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_osx/firefox");
+                browserPath =  "/Applications/Firefox.app/Contents/MacOS/firefox";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
