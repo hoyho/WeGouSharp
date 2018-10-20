@@ -19,6 +19,7 @@ pid="$!"
 echo "geckodriver.sh pid is: $$"
 echo "child geckodriver  pid is: $pid"
 
-trap 'echo I am going down, so killing off my processes..; kill $pid; exit' SIGHUP SIGINT SIGQUIT SIGTERM
+#kill myself and prune then env
+trap 'echo I am going down, so killing off my processes..; bash ${mydir}/prune.sh ;exit' SIGHUP SIGINT SIGQUIT SIGTERM
 
 wait
