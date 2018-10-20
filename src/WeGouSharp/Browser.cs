@@ -263,7 +263,7 @@ namespace WeGouSharp
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "Resource/firefox_windows/firefox.exe");
+                    @"Resource\firefox_windows\firefox.exe");
             }
 
             return browserPath;
@@ -287,8 +287,8 @@ namespace WeGouSharp
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/geckodriver/windows/")
-                                  + "," + ":geckodriver.exe";
+                geckodriverPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Resource\geckodriver\windows\")
+                                  + "," + "geckodriver.exe";
             }
 
             return geckodriverPath;
