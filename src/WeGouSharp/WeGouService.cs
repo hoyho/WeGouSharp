@@ -15,6 +15,7 @@ namespace WeGouSharp
         public WeGouService()
         {
             Program.EnsureInject();
+            Program.RegisterOnExit();
 
             var logger = ServiceProviderAccessor.ResolveService<ILog>();
             var browser = ServiceProviderAccessor.ResolveService<Browser>();

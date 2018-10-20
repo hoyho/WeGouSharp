@@ -5,8 +5,11 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.InteropServices;
 using WeGouSharp.Model;
 using WeGouSharp.YunDaMa;
+using WeGouSharp.Infrastructure;
+using System.Threading;
 
 namespace WeGouSharp
 {
@@ -34,6 +37,28 @@ namespace WeGouSharp
             logger.Error("logger inited");
         }
 
+        public static void RegisterOnExit()
+        {
+            System.AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+            {
+                Console.WriteLine("goodbye wegousharp");
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    //run powershell to kill
+                    return;
+                }
+
+                //kill geckodriver , and geckodriver.sh will kill himself and kill firefox instance`
+                //var  killRunningGeckoCmd = "ps -ef | grep \"firefox\" | grep  \"marionette\"  | awk {'print \"kill \" $2'} | bash ";
+                var killGeckoShellCmd = "ps -ef | grep geckodriver | grep port | awk {'print \"kill \" $2'} | bash ";
+                
+                //killRunningGeckoCmd.RunAsShell();
+                killGeckoShellCmd.RunAsShell();
+
+            };    
+
+        }
 
         /// <summary>
         /// Inject required service once in lifetime
