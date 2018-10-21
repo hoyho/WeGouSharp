@@ -51,12 +51,12 @@ dotnet run
 
 
 ### 初始化 API
-在sample项目中已经引用了该项目所以直接调用
+在sample项目中已经引用了该项目所以直接调用(单例模式)
 
 ```C#
 
-             var apiService = new WeGouService();
-            var rs = apiService.GetAccountInfoByIdAsync("bitsea").Result;
+            var apiService =  WeGouService.Instance;
+            var rs = apiService.GetAccountInfoByIdAsync("taosay").Result;
 
 ```
 
