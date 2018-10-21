@@ -6,7 +6,8 @@ namespace WeGouSharp.Infrastructure
 {
  public static class ShellHelper
     {
-        public static string RunAsShell(this string cmd)
+        //默认*nix shell,可以兼容powershell
+        public static string RunAsShell(this string cmd,bool isPowerShell =false)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
             
@@ -14,8 +15,8 @@ namespace WeGouSharp.Infrastructure
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "/bin/bash",
-                    Arguments = $"-c \"{escapedArgs}\"",
+                    FileName = isPowerShell? "Powershell":"/bin/bash",
+                    Arguments = isPowerShell? $"-Command \"{escapedArgs}\"" : $"-c \"{escapedArgs}\"",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -28,6 +29,7 @@ namespace WeGouSharp.Infrastructure
 
             return result;
         }
+
         
         
         public static async Task ExecuteShellAsync(this string cmd)

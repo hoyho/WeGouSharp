@@ -39,6 +39,10 @@ namespace WeGouSharp
 
         public static void RegisterOnExit()
         {
+            //注册中断按钮，否则下面的ProcessExit 事件不一定能触发
+            RegisterExitKey();
+
+            //somet time this not works ,for example ^C or taskkill, thus also register  at ControlBreak event
             System.AppDomain.CurrentDomain.ProcessExit += (s, e) =>
             {
                 Console.WriteLine("goodbye wegousharp");
@@ -46,18 +50,53 @@ namespace WeGouSharp
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     //run powershell to kill
+                    var gracefulShutdown = @"$
+                    geckodrives=(ps -Name geckodrive)
+                    Stop-Process -InputObject $geckodrives
+
+                    #list all firefox instance
+                    $all_ff=(ps -Name firefox | select id,ProcessName,mainWindowTItle)
+                    echo $all_ff
+
+                    #headless firefox mainWindowTItle=''
+                    $headless_firefox=(ps -Name firefox| Where { $_.mainWindowTItle -eq '' } )
+                    Stop-Process -InputObject $headless_firefox";
+                    gracefulShutdown.RunAsShell(isPowerShell:true);
                     return;
                 }
 
                 //kill geckodriver , and geckodriver.sh will kill himself and kill firefox instance`
                 //var  killRunningGeckoCmd = "ps -ef | grep \"firefox\" | grep  \"marionette\"  | awk {'print \"kill \" $2'} | bash ";
                 var killGeckoShellCmd = "ps -ef | grep geckodriver | grep port | awk {'print \"kill \" $2'} | bash ";
-                
+
                 //killRunningGeckoCmd.RunAsShell();
                 killGeckoShellCmd.RunAsShell();
 
-            };    
+            };
 
+
+
+        }
+
+        private static void RegisterExitKey()
+        {
+           //ref http://geekswithblogs.net/akraus1/archive/2006/10/30/95435.aspx
+            Console.CancelKeyPress +=  (s, e) =>
+            {
+
+                if (e.SpecialKey == ConsoleSpecialKey.ControlBreak)
+                {
+                    Console.WriteLine("Ctrl-Break catched");
+                    // Envirionment.Exit(1) would NOT do a cooperative shutdown. No finalizers are called!
+                }
+                if (e.SpecialKey == ConsoleSpecialKey.ControlC)
+                {
+                     Console.WriteLine("Ctrl-C catched ");
+                }
+
+            };
+
+            Console.WriteLine("Press Ctrl-C or Ctrl-Break to exit ");
         }
 
         /// <summary>
