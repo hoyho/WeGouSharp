@@ -49,7 +49,7 @@ namespace WeGouTest
 //            // var yunDaMa = new OnlineDecoder(ydmConfig);
 //
 //             ApiService = ServiceProviderAccessor.ResolveService<WeGouService>();
-            ApiService = new WeGouService();
+            ApiService =  WeGouService.Instance;
         }
     }
 }
