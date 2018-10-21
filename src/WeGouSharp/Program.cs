@@ -51,8 +51,8 @@ namespace WeGouSharp
                 {
                     //run powershell to kill
                     var gracefulShutdown = @"$
-                    geckodrives=(ps -Name geckodrive)
-                    Stop-Process -InputObject $geckodrives
+                    $geckodrivers=(ps -Name geckodriver)
+                    Stop-Process -InputObject $geckodrivers
 
                     #list all firefox instance
                     $all_ff=(ps -Name firefox | select id,ProcessName,mainWindowTItle)
@@ -93,6 +93,28 @@ namespace WeGouSharp
                 {
                      Console.WriteLine("Ctrl-C catched ");
                 }
+
+                //On windows 10, program catch calcle signal, but not handle , so clean up and exit program manully
+                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    //run powershell to kill
+                    var gracefulShutdown = @"$
+                    $geckodrivers=(ps -Name geckodriver)
+                    Stop-Process -InputObject $geckodrivers
+
+                    #list all firefox instance
+                    $all_ff=(ps -Name firefox | select id,ProcessName,mainWindowTItle)
+                    echo $all_ff
+
+                    #headless firefox mainWindowTItle=''
+                    $headless_firefox=(ps -Name firefox| Where { $_.mainWindowTItle -eq '' } )
+                    Stop-Process -InputObject $headless_firefox";
+                    gracefulShutdown.RunAsShell(isPowerShell:true);
+                   // return;
+                    Environment.Exit(0);
+                    
+                }
+
 
             };
 
