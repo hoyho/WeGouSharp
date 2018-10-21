@@ -9,7 +9,7 @@ namespace HostRunner
         {
             Console.WriteLine("Hello World!");
 
-             var apiService = new WeGouService();
+             var apiService =  WeGouService.Instance;
 
             var bs = ServiceProviderAccessor.ResolveService<Browser>();
 
