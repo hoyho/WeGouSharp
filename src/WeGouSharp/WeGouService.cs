@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +13,11 @@ namespace WeGouSharp
     {
         readonly WechatSogouApi _wechatSogouApi;
 
-        public WeGouService()
+        private static readonly Lazy<WeGouService> Lazy = new Lazy<WeGouService>(() => new WeGouService());
+
+        public static WeGouService Instance => Lazy.Value;
+
+        private WeGouService()
         {
             Program.EnsureInject();
             Program.RegisterOnExit();
@@ -20,9 +25,20 @@ namespace WeGouSharp
             var logger = ServiceProviderAccessor.ResolveService<ILog>();
             var browser = ServiceProviderAccessor.ResolveService<Browser>();
             var conf = ServiceProviderAccessor.ResolveService<IConfiguration>();
-            
+
             _wechatSogouApi = new WechatSogouApi(logger, browser, conf);
         }
+        // public WeGouService()
+        // {
+        //     Program.EnsureInject();
+        //     Program.RegisterOnExit();
+
+        //     var logger = ServiceProviderAccessor.ResolveService<ILog>();
+        //     var browser = ServiceProviderAccessor.ResolveService<Browser>();
+        //     var conf = ServiceProviderAccessor.ResolveService<IConfiguration>();
+
+        //     _wechatSogouApi = new WechatSogouApi(logger, browser, conf);
+        // }
 
         public WeGouService(ILog logger, Browser browser, IConfiguration conf)
         {

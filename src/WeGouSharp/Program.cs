@@ -20,7 +20,7 @@ namespace WeGouSharp
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World! dotnet core");
-            var srv = new WeGouService();
+            var srv =  WeGouService.Instance;
             var rs = srv.GetAccountInfoByIdAsync("bitsea").Result;
             Console.WriteLine(rs.AccountPageurl);
         }
