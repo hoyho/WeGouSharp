@@ -65,7 +65,7 @@ namespace WeGouSharp
                     return;
                 }
 
-                //kill geckodriver , and geckodriver.sh will kill himself and kill firefox instance`
+                //kill geckodriver , and geckodriver.sh will kill itself and kill firefox instance`
                 //var  killRunningGeckoCmd = "ps -ef | grep \"firefox\" | grep  \"marionette\"  | awk {'print \"kill \" $2'} | bash ";
                 var killGeckoShellCmd = "ps -ef | grep geckodriver | grep port | awk {'print \"kill \" $2'} | bash ";
 
@@ -112,8 +112,16 @@ namespace WeGouSharp
                     gracefulShutdown.RunAsShell(isPowerShell:true);
                    // return;
                     Environment.Exit(0);
-                    
                 }
+                
+//                //in linux or mac run shell to kill unmanaged resource, seems it no need to do that
+//                
+//                //kill geckodriver , and geckodriver.sh will kill himself and kill firefox instance`
+//                //var  killRunningGeckoCmd = "ps -ef | grep \"firefox\" | grep  \"marionette\"  | awk {'print \"kill \" $2'} | bash ";
+//                var killGeckoShellCmd = "ps -ef | grep geckodriver | grep port | awk {'print \"kill \" $2'} | bash ";
+//
+//                //killRunningGeckoCmd.RunAsShell();
+//                killGeckoShellCmd.RunAsShell();
 
 
             };
