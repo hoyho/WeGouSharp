@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using WeGouSharp.Infrastructure;
 using WeGouSharp.Model;
+using OpenQA.Selenium;
 
 namespace WeGouSharp
 {
@@ -42,7 +43,7 @@ namespace WeGouSharp
                 }
             }
 
-            FirefoxOptions ffopt = new FirefoxOptions() {Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal};
+            FirefoxOptions ffopt = new FirefoxOptions() { Profile = ffProfile, LogLevel = FirefoxDriverLogLevel.Fatal };
 
             _driver = LaunchFireFox(ffopt);
 
@@ -72,7 +73,7 @@ namespace WeGouSharp
             //use embeded driver and geckodriver
             var fds = string.IsNullOrEmpty(geckodriverFullPath)
                 ? FirefoxDriverService.CreateDefaultService()
-                : FirefoxDriverService.CreateDefaultService(pathArray[0],pathArray[1]);
+                : FirefoxDriverService.CreateDefaultService(pathArray[0], pathArray[1]);
 
             if (!string.IsNullOrWhiteSpace(browserPath))
             {
@@ -85,6 +86,12 @@ namespace WeGouSharp
             if (args != null && args.Count > 0)
             {
                 option.AddArguments(args);
+            }
+
+            //hide addon or other log
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Environment.SetEnvironmentVariable("BROWSER_LOGFILE", "NUL 2>&1");
             }
 
             var driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
@@ -258,14 +265,14 @@ namespace WeGouSharp
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                browserPath =  "/Applications/Firefox.app/Contents/MacOS/firefox";
+                browserPath = "/Applications/Firefox.app/Contents/MacOS/firefox";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    @"Resource\firefox_windows\firefox.exe");
+                    @"Resource/firefox_windows/firefox.exe");
             }
-
+            return "";
             return browserPath;
         }
 

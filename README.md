@@ -8,7 +8,23 @@
 
 *** 已经更新至dotnet core，可在linux或Mac下运行 ***
 
-*** 由于集成了Firefox作为引擎,所以包比较大..,如果想小点的可以查看faq文档[faq](docs/faq.md)***
+
+### 关于依赖处理
+~~由于集成了Firefox作为引擎,所以包比较大..,如果想小点的可以查看faq文档[faq](docs/faq.md)~~
+
+考虑到稳定性和兼容性并优化包大小，所以现在不再单独提供firefox二进制文件
+
+但是程序还是依赖firefox，所以请自行在运行的机器安装最新版Firefox
+
+- 使用包管理器安装(Debian/Ubuntu) 
+`sudo apt update && sudo apt install firefox`
+ 其他系统同理，推荐这种方案，因为这样安装可以直接在终端输入firefox即可运行
+
+ 或者使用下面方法安装，似乎需要把安装目录加入到环境变量
+ 
+- Windows/macOS/Linux [下载安装](https://www.mozilla.org/en-US/firefox/new/)
+
+**如果不是安装在系统目录下，请把安装目录加入到环境变量**
 
 ## 安装/引用
 ~~默认编译类型为控制台应用~~
