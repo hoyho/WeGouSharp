@@ -72,7 +72,7 @@ namespace WeGouSharp
             //use embeded driver and geckodriver
             var fds = string.IsNullOrEmpty(geckodriverFullPath)
                 ? FirefoxDriverService.CreateDefaultService()
-                : FirefoxDriverService.CreateDefaultService(pathArray[0],pathArray[1]);
+                : FirefoxDriverService.CreateDefaultService(pathArray[0], pathArray[1]);
 
             if (!string.IsNullOrWhiteSpace(browserPath))
             {
@@ -222,6 +222,34 @@ namespace WeGouSharp
         }
 
 
+        private void SetFirefoxProxy()
+        {
+            _driver.Navigate().GoToUrl("http://2018.ip138.com/ic.asp");
+            var pxHost = "127.0.0.1";
+            var pxPort = "8001";
+
+            _driver.Navigate().GoToUrl("about:config");
+            var setupScript =
+                @"var prefs = Components.classes[""@mozilla.org/preferences-service;1""].getService(Components.interfaces.nsIPrefBranch);
+                prefs.setIntPref(""network.proxy.type"", 1);
+                prefs.setCharPref(""network.proxy.http"", ""127.0.0.1"");
+                prefs.setIntPref(""network.proxy.http_port"", ""8001"");
+                  ";
+                //prefs.setCharPref(""network.proxy.ssl"", ""127.0.0.1"");
+                //prefs.setIntPref(""network.proxy.ssl_port"", ""8001"");
+                //prefs.setCharPref(""network.proxy.ftp"", ""127.0.0.1"");
+                //prefs.setIntPref(""network.proxy.ftp_port"", ""8001"");
+                //prefs.setCharPref(""network.proxy.socks"", ""127.0.0.1"");
+                //prefs.setIntPref(""network.proxy.socks_port"", ""8001"");
+            
+            //running script below  
+            _driver.ExecuteScript(setupScript);
+
+            //sleep for 1 secs
+            System.Threading.Thread.Sleep(1000);
+            //_driver.Navigate().GoToUrl("http://2018.ip138.com/ic.asp");
+        }
+
         /// <summary>
         /// 运行shell判断系统是否有Desktop 环境
         /// </summary>
@@ -258,7 +286,7 @@ namespace WeGouSharp
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                browserPath =  "/Applications/Firefox.app/Contents/MacOS/firefox";
+                browserPath = "/Applications/Firefox.app/Contents/MacOS/firefox";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
