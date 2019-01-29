@@ -76,11 +76,12 @@ dotnet run
 
 ```
 
-运行截图：
-osx
+运行截图 macOS：
+
 ![run_sample_on_mac](docs/ScreenShot/run_sample.png)
 
 windows
+
 ![运行结果](docs/ScreenShot/SearchOfficialAccount.png?raw=true)
 
 ## 数据结构：
