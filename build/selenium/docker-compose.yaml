@@ -1,0 +1,21 @@
+#docker-compose yml file use `docker-compose -f <file_name> up`
+# Add the `-d` flag at the end for detached execution
+# By default,It will use port 4444
+#for example, you IP is 10.252.90.43, then you will get a selenium instance like "http://10.252.90.122:4444/hub"
+#
+version: "3"
+services:
+  selenium-hub:
+    image: selenium/hub:3.141.59-gold
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+  firefox:
+    image: selenium/node-firefox:3.141.59-gold
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
