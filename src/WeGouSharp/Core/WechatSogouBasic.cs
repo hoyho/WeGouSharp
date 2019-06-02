@@ -21,7 +21,7 @@ namespace WeGouSharp.Core
         private readonly ILog _logger;
         private readonly Browser _browser;
         private readonly IConfiguration _configuration;
-        private int _tryCount;
+        //private int _tryCount;
 
         public static List<string> UserAgents;
 

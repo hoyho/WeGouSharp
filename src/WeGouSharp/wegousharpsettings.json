@@ -9,7 +9,8 @@
     "TimeOut": "60"
   },
   "Driver": {
-    "UseEmbededBrowser":false,
+    "Type":"local", //local: use defult browser , remote: remote selenium ,you need to provide the endpoint also, embed: with your provided path like ./Resource/firefox_xxx
+    "EndPoint": "http://10.252.90.44:4444/wd/hub", //if you have congigured Type:Remote, this is your remote browser endpoint. othewise, Ignore this setting.
     "FireFoxPreference": {
       //open firefox input about:config , you can referer http://kb.mozillazine.org/Category:Preferences
       "browser.download.folderList": 1,

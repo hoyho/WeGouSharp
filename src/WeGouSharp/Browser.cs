@@ -12,12 +12,13 @@ using Microsoft.Extensions.Configuration;
 using WeGouSharp.Infrastructure;
 using WeGouSharp.Model;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Remote;
 
 namespace WeGouSharp
 {
     public class Browser
     {
-        private readonly FirefoxDriver _driver;
+        private readonly RemoteWebDriver _driver;
 
         readonly IConfiguration _config;
 
@@ -60,20 +61,23 @@ namespace WeGouSharp
         /// </summary>
         /// <param name="option"></param>
         /// <returns></returns>
-        private FirefoxDriver LaunchFireFox(FirefoxOptions option)
+        private RemoteWebDriver LaunchFireFox(FirefoxOptions option)
         {
-            var useEmbededBrowser = _config.GetValue<bool>("Driver:UseEmbededBrowser");
+           // EngineType engineType = EngineType.Local;
+            
+            var engineType = _config.GetValue<EngineType>("Driver:Type");
+            _logger.Info($"using driverType:{engineType}");
+            
+            var browserPath = engineType == EngineType.Embed ? GetBrowserPath() : "";
 
-            var browserPath = useEmbededBrowser ? GetBrowserPath() : "";
-
-            //folder containe geckodriver
+            //folder contain geckodriver
             var geckodriverFullPath = GetGeckoDriverPath();
             var pathArray = geckodriverFullPath.Split(',');
 
-            //use embeded driver and geckodriver
+            //use embed driver and geckodriver            
             var fds = string.IsNullOrEmpty(geckodriverFullPath)
-                ? FirefoxDriverService.CreateDefaultService()
-                : FirefoxDriverService.CreateDefaultService(pathArray[0], pathArray[1]);
+            ? FirefoxDriverService.CreateDefaultService()
+            : FirefoxDriverService.CreateDefaultService(pathArray[0], pathArray[1]);
 
             if (!string.IsNullOrWhiteSpace(browserPath))
             {
@@ -88,13 +92,30 @@ namespace WeGouSharp
                 option.AddArguments(args);
             }
 
-            //hide addon or other log
+            //hide add on or other log
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Environment.SetEnvironmentVariable("BROWSER_LOGFILE", "NUL 2>&1");
             }
 
-            var driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
+            
+            RemoteWebDriver driver = null;
+            switch (engineType)
+            {
+                   case EngineType.Local:
+                   case EngineType.Embed:
+                       driver = new FirefoxDriver(fds, option, TimeSpan.FromMinutes(1));
+                       break;
+                   case EngineType.Remote:
+                       //var uri = "http://10.252.90.122:4444/hub";
+                       var uri = _config.GetValue<string>("Driver:EndPoint");
+                       var capabilities =  option.ToCapabilities();
+                       var commandTimeout = TimeSpan.FromSeconds(60);
+                       driver = new RemoteWebDriver(new Uri(uri), capabilities, commandTimeout);
+                       break;
+                        
+            }
+
             return driver;
         }
 
@@ -259,7 +280,7 @@ namespace WeGouSharp
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
                 && IsRunWithXServer()
-            ) //linux with desktop environemnt
+            ) //linux with desktop environment
             {
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource/firefox_linux/firefox");
             }
@@ -272,7 +293,7 @@ namespace WeGouSharp
                 browserPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                     @"Resource/firefox_windows/firefox.exe");
             }
-            return "";
+            //return "";
             return browserPath;
         }
 
