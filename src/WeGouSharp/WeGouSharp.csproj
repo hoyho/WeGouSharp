@@ -1,7 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
     <OutputType>exe</OutputType>
+   -->
+    <PackageId>WegouSharp</PackageId>
+    <Version>0.0.4</Version>
+    <Authors>Hoyho</Authors>
+    <Company>here2say</Company>
+    <Title>Wechat public account scrawler helper</Title>
+    <Owners>Hoyho</Owners>
+    <RepositoryUrl>https://github.com/hoyho/WeGouSharp</RepositoryUrl>
+    <Description>A powerful spider tool for wechat official account</Description>
+    <LicenseUrl>https://raw.githubusercontent.com/hoyho/WeGouSharp/master/LICENSE</LicenseUrl>
+    <ProjectUrl>https://github.com/hoyho/WeGouSharp</ProjectUrl>
+
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />
@@ -16,22 +29,29 @@
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
     <PackageReference Include="OpenCvSharp3-AnyCPU" Version="3.3.1.20171117" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
-        <PackageReference Include="RestSharp" Version="106.3.1" />
-    <!--
-            <PackageReference Include="OpenCvSharp3-WithoutDll" Version="3.3.1.20171117" /> 
-        -->
+    <PackageReference Include="RestSharp" Version="106.3.1" />
   </ItemGroup>
+
+
   <ItemGroup>
-    <None Update="log4net.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Content Include="log4net.config" buildAction="Content" copyToOutput="true" Pack="false" >
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
+    </Content>
   </ItemGroup>
+
   <ItemGroup>
-    <None Update="Resource\**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Resource\**" buildAction="Content" copyToOutput="true" Pack="false">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
+    </Content>
   </ItemGroup>
+  
   <ItemGroup>
-    <None Update="wegousharpsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Update="wegousharpsettings.json" CopyToOutputDirectory="PreserveNewest" Pack="false" />
   </ItemGroup>
+
+ <ItemGroup>
+   <None Include="readme.txt" pack="true" PackagePath="." />
+</ItemGroup>
+
+
 </Project>
