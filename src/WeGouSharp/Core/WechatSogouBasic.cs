@@ -56,7 +56,8 @@ namespace WeGouSharp.Core
             catch (WechatSogouVcodeException vCodeEx)
             {
                 var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
+                var rs = await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
+                requestUrl = rs.IsSuccessful ? rs.ContinueUrl : requestUrl;
                 Thread.Sleep(4000);
                 tryTime++;
                 text = tryTime > 5 ? "" : await _browser.GetPageWithoutVcodeAsync(requestUrl);
@@ -89,7 +90,10 @@ namespace WeGouSharp.Core
             {
                 var enableOnlineDecode = _configuration.GetSection("enableOnlineDecode").Get<bool>();
 
-                await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
+                 var rs = await _browser.HandleSogouVcodeAsync(vCodeEx.VisittingUrl, enableOnlineDecode);
+
+                requestUrl = rs.IsSuccessful ? rs.ContinueUrl : requestUrl;
+  
 
                 await _browser.GetPageWithoutVcodeAsync(requestUrl);
             }
@@ -120,8 +124,35 @@ namespace WeGouSharp.Core
             {
                 Console.WriteLine(ve.ToString());
                 var enableOnlineDecode = _configuration.GetSection("EnableOnlineDecode").Get<bool>();
-                if (await _browser.HandleSogouVcodeAsync(ve.VisittingUrl, enableOnlineDecode))
+                var rs = await _browser.HandleSogouVcodeAsync(ve.VisittingUrl, enableOnlineDecode);
+                url = rs.IsSuccessful ? rs.ContinueUrl : url;
+               
+                if (rs.JumpPageContent.Contains("相关微信公众号")) //此时应该重定向到搜索公众号的结果页面了，重新匹配一次账号信息
                 {
+                    /*
+                    function() {
+                        var b = Math.floor(100 * Math.random()) + 1,
+                            a = this.href.indexOf("url="),
+                            c = this.href.indexOf("&k="); 
+                            - 1 !== a && -1 === c && (
+a = this.href.substr(a + 4 + parseInt("26") + b, 1),
+this.href += "&k=" + b + "&h=" + a
+)
+                    }
+                    */
+
+                    
+                    var accs = _ResolveOfficialAccounts(rs.JumpPageContent);
+                    if (accs != null && accs.Count > 0 && !string.IsNullOrEmpty(accs[0].AccountPageurl))
+                    {
+                        url = accs[0].AccountPageurl;
+                        var r =  new Random().NextDouble() * 100;
+                        var b = (int) Math.Floor(r) + 1;
+                        var a = url.IndexOf("url=", StringComparison.Ordinal);
+                        var astr = url.Substring(a + 4 + 26 + b, 1);
+                        url += "&k=" + b + "&h=" + astr;
+                    }
+                   
                 }
 
                 text = await _browser.GetPageWithoutVcodeAsync(url);
@@ -175,6 +206,62 @@ namespace WeGouSharp.Core
             officialAccount.QrCode = qrcode;
             return officialAccount;
         }
+        
+        
+   public  List<OfficialAccount> _ResolveOfficialAccounts(string htmlText)
+        {
+            var accountList = new List<OfficialAccount>();
+            var pageDoc = new HtmlDocument();
+            pageDoc.LoadHtml(htmlText);
+            var targetArea = pageDoc.DocumentNode.SelectNodes("//ul[@class='news-list2']/li");
+            if (targetArea == null) return null;
+            foreach (var node in targetArea)
+            {
+                var accountInfo = new OfficialAccount();
+                try
+                {
+                    //链接中包含了&amp; html编码符，要用htmdecode，不是urldecode
+                    accountInfo.AccountPageurl =
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a")
+                            .GetAttributeValue("href", ""));
+                    if (!string.IsNullOrEmpty(accountInfo.AccountPageurl) && accountInfo.AccountPageurl.StartsWith("/"))
+                    {
+                        accountInfo.AccountPageurl = "https://weixin.sogou.com" + accountInfo.AccountPageurl;
+                    }
+                    
+                    
+                    //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
+                    accountInfo.ProfilePicture = WebUtility.HtmlDecode(node
+                        .SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));
+
+                    if (accountInfo.ProfilePicture != null && accountInfo.ProfilePicture.StartsWith("//"))
+                    {
+                        accountInfo.ProfilePicture = "http:" + accountInfo.ProfilePicture;
+                    }
+
+
+                    accountInfo.Name = node.SelectSingleNode("div/div[2]/p[1]").InnerText.Trim()
+                        .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
+                    accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
+                    accountInfo.QrCode =
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img")
+                            .GetAttributeValue("src", ""));
+                    accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim()
+                        .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
+                    //早期的账号认证和后期的认证显示不一样？，对比 bitsea 和 NUAA_1952 两个账号
+                    //现在改为包含该script的即认证了
+                    accountInfo.IsAuth = node.InnerText.Contains("document.write(authname('2'))");
+                    accountList.Add(accountInfo);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(e);
+                }
+            }
+
+            return accountList;
+        }
+
 
 
         /// <summary>

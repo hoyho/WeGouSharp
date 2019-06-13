@@ -52,6 +52,11 @@ namespace WeGouSharp.Core
                     accountInfo.AccountPageurl =
                         WebUtility.HtmlDecode(node.SelectSingleNode("div/div[@class='img-box']/a")
                             .GetAttributeValue("href", ""));
+                    if (!string.IsNullOrEmpty(accountInfo.AccountPageurl) && accountInfo.AccountPageurl.StartsWith("/"))
+                    {
+                        accountInfo.AccountPageurl = "https://weixin.sogou.com" + accountInfo.AccountPageurl;
+                    }
+                    
                     //accountInfo.ProfilePicture = node.SelectSingleNode("div/div[1]/a/img").InnerHtml;
                     accountInfo.ProfilePicture = WebUtility.HtmlDecode(node
                         .SelectSingleNode("div/div[@class='img-box']/a/img").GetAttributeValue("src", ""));

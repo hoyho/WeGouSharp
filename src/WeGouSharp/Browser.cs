@@ -8,10 +8,14 @@ using WeGouSharp.YunDaMa;
 using System.Threading.Tasks;
 using OpenQA.Selenium.Firefox;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Interactions.Internal;
 using WeGouSharp.Infrastructure;
 using WeGouSharp.Model;
-using OpenQA.Selenium;
+using WeGouSharp.Model.vcode;
 using OpenQA.Selenium.Remote;
 
 namespace WeGouSharp
@@ -132,9 +136,10 @@ namespace WeGouSharp
             {
                 _driver.Navigate().GoToUrl(url);
                 var pageSrc = _driver.PageSource;
-                if (pageSrc.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证"))
+                if (pageSrc.Contains("用户您好，您的访问过于频繁，为确认本次访问为正常用户行为，需要您协助验证") ||
+                    pageSrc.Contains("请输入图中的验证码"))
                 {
-                    throw new WechatSogouVcodeException("vcode")
+                    throw new WechatSogouVcodeException("vcode") //搜狗的验证码
                     {
                         VisittingUrl = url
                     };
@@ -142,7 +147,7 @@ namespace WeGouSharp
 
                 if (pageSrc.Contains("为了您的安全请输入验证码") && _driver.Url.Contains("mp.weixin.qq.com"))
                 {
-                    throw new WechatWxVcodeException("vcode")
+                    throw new WechatWxVcodeException("vcode") //微信的验证码
                     {
                         VisittingUrl = url
                     };
@@ -209,8 +214,14 @@ namespace WeGouSharp
 
 
         //搜狗页的验证码
-        public async Task<bool> HandleSogouVcodeAsync(string vCodeUrl, bool useCloudDecode = false)
+        public async Task<SougouVcodeVerifyResult> HandleSogouVcodeAsync(string vCodeUrl, bool useCloudDecode = false)
         {
+            SougouVcodeVerifyResult vcodeResult = new SougouVcodeVerifyResult()
+            {
+                IsSuccessful = false,
+                ContinueUrl = vCodeUrl
+            };
+            
             await GetPageAsync(vCodeUrl);
 
             var base64Img = _driver.ExecuteScript(@"
@@ -243,10 +254,33 @@ namespace WeGouSharp
 
 
             var codeInput = _driver.FindElementById("seccodeInput");
+            
+            Actions action  = new Actions(_driver);
+            action.MoveToElement(codeInput).Perform();
+            
             codeInput.SendKeys(verifyCode);
 
-            _driver.FindElementById("submit").Click();
-            return true;
+            var submit = _driver.FindElementById("submit");
+            action.MoveToElement(submit).Perform();
+            submit.Click();
+            vcodeResult.IsSuccessful = true;
+            Thread.Sleep(5000);
+            vcodeResult.ContinueUrl = _driver.Url;
+               
+            try
+            {
+                var recent = _driver.FindElementByXPath("//p[@class='tit']/a");
+                action.MoveToElement(recent).Perform();
+                action.Click().Perform();
+               
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+            vcodeResult.JumpPageContent = _driver.PageSource;
+            return vcodeResult;
         }
 
 

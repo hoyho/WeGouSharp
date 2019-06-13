@@ -34,7 +34,7 @@
 
 
   <ItemGroup>
-    <Content Include="log4net.config" buildAction="Content" copyToOutput="true" Pack="false" >
+    <Content Include="log4net.config" buildAction="Content" copyToOutput="true" Pack="false">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
     </Content>
   </ItemGroup>
