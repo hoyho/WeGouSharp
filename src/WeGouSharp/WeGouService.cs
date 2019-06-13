@@ -69,6 +69,13 @@ namespace WeGouSharp
             return account;
         }
 
+
+         public async Task<OfficialAccount> GetAccountInfoByNameAsync(string accountName)
+        {
+            var account = await _wechatSogouApi.GetAccountInfoByIdAsync(accountName);
+            return account;
+        }
+
         //根据公众号id查询(json)
         public async Task<string> GetAccountInfoByIdSerializedAsync(string accountId)
         {
