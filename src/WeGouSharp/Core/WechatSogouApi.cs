@@ -99,6 +99,11 @@ namespace WeGouSharp.Core
             return info;
         }
 
+        public async Task<OfficialAccount> GetAccountInfoByNameAsync(string wechatid)
+        {
+            var info = (await SearchOfficialAccountAsync(wechatid))?.FirstOrDefault(); //可能为空
+            return info;
+        }
 
         /// <summary>
         /// 搜索微信文章
