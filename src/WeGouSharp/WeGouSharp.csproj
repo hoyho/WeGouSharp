@@ -5,7 +5,7 @@
     <OutputType>exe</OutputType>
    -->
     <PackageId>WegouSharp</PackageId>
-    <Version>0.0.4</Version>
+    <Version>1.0.0</Version>
     <Authors>Hoyho</Authors>
     <Company>here2say</Company>
     <Title>Wechat public account scrawler helper</Title>
