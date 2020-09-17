@@ -66,7 +66,7 @@ namespace WeGouSharp.Core
                         .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
                     accountInfo.WeChatId = node.SelectSingleNode("div/div[2]/p[2]/label").InnerText.Trim();
                     accountInfo.QrCode =
-                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[3]/span/img")
+                        WebUtility.HtmlDecode(node.SelectSingleNode("div/div[4]/span/img")
                             .GetAttributeValue("src", ""));
                     accountInfo.Introduction = node.SelectSingleNode("dl[1]/dd").InnerText.Trim()
                         .Replace("<!--red_beg-->", "").Replace("<!--red_end-->", "");
